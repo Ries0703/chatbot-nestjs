@@ -4,6 +4,29 @@ import process from 'node:process';
 dotenv.config();
 
 const environment = process.env.NODE_ENV;
+
+function validateEnvVar(
+  envVar: string | undefined,
+  name: string,
+  isNumber: boolean = false,
+): string | number {
+  if (!envVar) {
+    throw new Error(`Missing environment variable: ${name}`);
+  }
+
+  if (isNumber) {
+    const parsed = parseInt(envVar, 10);
+    if (isNaN(parsed)) {
+      throw new Error(
+        `Environment variable ${name} should be a number but received: ${envVar}`,
+      );
+    }
+    return parsed;
+  }
+
+  return envVar;
+}
+
 console.log(environment);
 type Config = {
   appConfig: {
@@ -30,53 +53,85 @@ type Config = {
   };
 };
 
-const devConfig: Config = {
+const prodConfig: Config = {
   appConfig: {
-    PORT: parseInt(process.env.PORT),
+    PORT: validateEnvVar(process.env.PORT, 'PORT', true) as number,
   },
 
   dbConfig: {
-    DATABASE_URL: process.env.DATABASE_URL,
+    DATABASE_URL: validateEnvVar(
+      process.env.DATABASE_URL,
+      'DATABASE_URL',
+    ) as string,
   },
 
   redisConfig: {
-    REDIS_HOST: process.env.REDIS_HOST,
-    REDIS_PORT: parseInt(process.env.REDIS_PORT),
-    REDIS_PASSWORD: process.env.REDIS_PASSWORD,
+    REDIS_HOST: validateEnvVar(process.env.REDIS_HOST, 'REDIS_HOST') as string,
+    REDIS_PORT: validateEnvVar(
+      process.env.REDIS_PORT,
+      'REDIS_PORT',
+      true,
+    ) as number,
+    REDIS_PASSWORD: process.env.REDIS_PASSWORD, // Optional, no validation required
   },
 
   facebookConfig: {
-    FACEBOOK_MESSAGE_URI: process.env.FACEBOOK_MESSAGE_URI,
-    VERIFY_TOKEN: process.env.VERIFY_TOKEN,
+    FACEBOOK_MESSAGE_URI: validateEnvVar(
+      process.env.FACEBOOK_MESSAGE_URI,
+      'FACEBOOK_MESSAGE_URI',
+    ) as string,
+    VERIFY_TOKEN: validateEnvVar(
+      process.env.VERIFY_TOKEN,
+      'VERIFY_TOKEN',
+    ) as string,
   },
 
   openAIConfig: {
-    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    OPENAI_API_KEY: validateEnvVar(
+      process.env.OPENAI_API_KEY,
+      'OPENAI_API_KEY',
+    ) as string,
   },
 };
 
-const prodConfig: Config = {
+const devConfig: Config = {
   appConfig: {
-    PORT: parseInt(process.env.PORT),
+    PORT: validateEnvVar(process.env.PORT, 'PORT', true) as number,
   },
 
   dbConfig: {
-    DATABASE_URL: process.env.DATABASE_URL,
+    DATABASE_URL: validateEnvVar(
+      process.env.DATABASE_URL,
+      'DATABASE_URL',
+    ) as string,
   },
 
   redisConfig: {
-    REDIS_HOST: process.env.REDIS_HOST,
-    REDIS_PORT: parseInt(process.env.REDIS_PORT),
-    REDIS_PASSWORD: process.env.REDIS_PASSWORD,
+    REDIS_HOST: validateEnvVar(process.env.REDIS_HOST, 'REDIS_HOST') as string,
+    REDIS_PORT: validateEnvVar(
+      process.env.REDIS_PORT,
+      'REDIS_PORT',
+      true,
+    ) as number,
+    REDIS_PASSWORD: process.env.REDIS_PASSWORD, // Optional, no validation required
   },
 
   facebookConfig: {
-    FACEBOOK_MESSAGE_URI: process.env.FACEBOOK_MESSAGE_URI,
-    VERIFY_TOKEN: process.env.VERIFY_TOKEN,
+    FACEBOOK_MESSAGE_URI: validateEnvVar(
+      process.env.FACEBOOK_MESSAGE_URI,
+      'FACEBOOK_MESSAGE_URI',
+    ) as string,
+    VERIFY_TOKEN: validateEnvVar(
+      process.env.VERIFY_TOKEN,
+      'VERIFY_TOKEN',
+    ) as string,
   },
 
   openAIConfig: {
-    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    OPENAI_API_KEY: validateEnvVar(
+      process.env.OPENAI_API_KEY,
+      'OPENAI_API_KEY',
+    ) as string,
   },
 };
 
