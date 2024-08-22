@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { SendApiService } from './send-api.service';
 import { WebhookService } from './webhook.service';
-import { QueueService } from './queue.service';
+import { ProcessorModule } from '../../../processor/processor.module';
 
 @Module({
-  imports: [],
-  providers: [SendApiService, WebhookService, QueueService],
-  exports: [SendApiService, WebhookService, QueueService],
+  imports: [ProcessorModule],
+  providers: [SendApiService, WebhookService],
+  exports: [SendApiService, WebhookService],
 })
 export class MessengerPlatformModule {}

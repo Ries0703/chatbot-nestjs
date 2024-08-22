@@ -1,12 +1,12 @@
 import { Provider } from '@nestjs/common';
 import OpenAI from 'openai';
-import * as process from 'node:process';
+import { config } from '../../../config/app.config';
 
 export const OpenaiProvider: Provider = {
   provide: OpenAI,
   useFactory: (): OpenAI => {
     return new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+      apiKey: config.openAIConfig.OPENAI_API_KEY,
     });
   },
 };

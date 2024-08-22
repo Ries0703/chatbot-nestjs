@@ -1,12 +1,13 @@
 import { Controller, Get, HttpStatus, Post, Req, Res } from '@nestjs/common';
 import { WebhookService } from '../services/messenger-platform/webhook.service';
 
-@Controller('webhook')
+@Controller('facebook/webhook')
 export class WebhookController {
   constructor(private readonly webhookService: WebhookService) {}
 
   @Get() getWebhook(@Req() request: any, @Res() response: any): void {
     if (!this.webhookService.isValidWebhookSubscription(request.body)) {
+      console.log('getWebhook(): not a valid webhook subscription');
       response.status(HttpStatus.FORBIDDEN);
       return;
     }
@@ -14,12 +15,14 @@ export class WebhookController {
     response.status(HttpStatus.OK).send(request.query['hub.challenge']);
   }
 
-  @Post() postWebhook(@Req() request: any, @Res() response: any): void {
+  @Post()
+  async postWebhook(@Req() request: any, @Res() response: any): Promise<void> {
     if (request.body.object !== 'page') {
+      console.log('not an event from the page');
       response.status(HttpStatus.NOT_FOUND).send();
       return;
     }
-    console.log('adding stuff to queue');
+    await this.webhookService.receiveWebhookEvent(request.body);
     response.status(HttpStatus.OK).send('EVENT_RECEIVED');
   }
 }
