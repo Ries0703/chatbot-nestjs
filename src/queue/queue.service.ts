@@ -13,6 +13,7 @@ export class QueueService {
     const queue: Queue = this.queueStrategy.getQueueForPlatform(platform);
     if (!queue) {
       this.logger.error(`platform not supported: ${platform}`);
+      return;
     }
     this.logger.log(`enqueuing job for platform ${platform}`);
     await queue.add(platform, data);
