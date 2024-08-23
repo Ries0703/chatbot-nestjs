@@ -1,7 +1,11 @@
 import { Module } from '@nestjs/common';
-import { FacebookBackgroundService } from './facebook-background.service';
+import { MessengerBackgroundService } from './messenger-background.service';
+import { OpenaiModule } from '../openai/openai.module';
+import { RepositoryModule } from '../repository/repository.module';
 
 @Module({
-  providers: [FacebookBackgroundService]
+  imports: [OpenaiModule, RepositoryModule],
+  providers: [MessengerBackgroundService],
+  exports: [MessengerBackgroundService],
 })
 export class BackgroundModule {}

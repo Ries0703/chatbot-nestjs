@@ -4,8 +4,23 @@ import { ThreadService } from './thread.service';
 import { RunService } from './run.service';
 import { FileService } from './file.service';
 import { VectorStoreService } from './vector-store.service';
+import { FacebookModule } from '../facebook/facebook.module';
 
 @Module({
-  providers: [AssistantService, ThreadService, RunService, FileService, VectorStoreService]
+  imports: [FacebookModule],
+  providers: [
+    AssistantService,
+    ThreadService,
+    RunService,
+    FileService,
+    VectorStoreService,
+  ],
+  exports: [
+    AssistantService,
+    ThreadService,
+    RunService,
+    FileService,
+    VectorStoreService,
+  ],
 })
 export class OpenaiModule {}
