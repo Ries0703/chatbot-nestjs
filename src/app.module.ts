@@ -1,9 +1,8 @@
 import { Module } from '@nestjs/common';
-import { AiModule } from './ai/ai.module';
-import { FacebookModule } from './facebook/facebook.module';
-import { AppConfigModule } from './config/config.module';
+import { WebhookModule } from './webhook/webhook.module';
+import { QueueModule } from './queue/queue.module';
 
 @Module({
-  imports: [AiModule, FacebookModule, AppConfigModule],
+  imports: [WebhookModule, QueueModule],
 })
 export class AppModule {}

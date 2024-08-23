@@ -1,9 +1,7 @@
 import { Module } from '@nestjs/common';
-import { ServicesModule } from './services/services.module';
-import { ControllersModule } from './controllers/controllers.module';
-import { RepositoriesModule } from './repositories/repositories.module';
+import { SendMessageService } from './send-message.service';
 
 @Module({
-  imports: [ServicesModule, ControllersModule, RepositoriesModule],
+  providers: [SendMessageService]
 })
 export class FacebookModule {}
