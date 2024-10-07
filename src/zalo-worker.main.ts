@@ -1,9 +1,9 @@
 import { NestFactory } from '@nestjs/core';
-import { WorkerModule } from './worker.module';
 import * as process from 'node:process';
+import { ZaloWorkerModule } from './zalo-worker.module';
 
 async function bootstrap() {
-  const app = await NestFactory.createApplicationContext(WorkerModule);
+  const app = await NestFactory.createApplicationContext(ZaloWorkerModule);
   await app.init();
 }
 

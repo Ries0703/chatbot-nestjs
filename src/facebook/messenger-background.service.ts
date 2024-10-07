@@ -13,6 +13,8 @@ export class MessengerBackgroundService extends WorkerHost {
   }
 
   async process(job: Job, token?: string): Promise<any> {
-    this.logger.debug(`Processing job: ${job} with token: ${token}`);
+    this.logger.debug(
+      `Processing job: ${JSON.stringify(job)} with token: ${token}`,
+    );
   }
 }

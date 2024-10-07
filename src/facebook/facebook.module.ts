@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { SendMessageService } from './send-message.service';
+import { MessengerBackgroundService } from './messenger-background.service';
 
 @Module({
-  providers: [SendMessageService],
-  exports: [SendMessageService],
+  providers: [MessengerBackgroundService],
+  exports: [MessengerBackgroundService],
 })
 export class FacebookModule {}
