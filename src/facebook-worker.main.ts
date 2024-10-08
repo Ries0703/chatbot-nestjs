@@ -1,9 +1,9 @@
 import { NestFactory } from '@nestjs/core';
-import { FacebookWorkerModule } from './facebook-worker.module';
 import * as process from 'node:process';
+import { FacebookModule } from './facebook/facebook.module';
 
 async function bootstrap() {
-  const app = await NestFactory.createApplicationContext(FacebookWorkerModule);
+  const app = await NestFactory.createApplicationContext(FacebookModule);
   await app.init();
 }
 

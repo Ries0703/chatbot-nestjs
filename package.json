@@ -13,8 +13,6 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "start:facebook-worker": "node dist/facebook-worker.main",
-    "start:telegram-worker": "node dist/telegram-worker.main",
-    "start:zalo-worker": "node dist/zalo-worker.main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",

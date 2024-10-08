@@ -1,8 +1,11 @@
 import { Module } from '@nestjs/common';
-import { MessengerBackgroundService } from './messenger-background.service';
+import { MessengerWorkerService } from './messenger-worker.service';
+import { QueueModule } from '../queue/queue.module';
+import { SendApiService } from './send-api.service';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
-  providers: [MessengerBackgroundService],
-  exports: [MessengerBackgroundService],
+  imports: [QueueModule, HttpModule],
+  providers: [MessengerWorkerService, SendApiService],
 })
 export class FacebookModule {}

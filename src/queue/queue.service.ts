@@ -16,6 +16,9 @@ export class QueueService {
       return;
     }
     this.logger.log(`enqueuing job for platform ${platform}`);
-    await queue.add(platform, data);
+    await queue.add(platform, data, {
+      removeOnComplete: true,
+      removeOnFail: true,
+    });
   }
 }
