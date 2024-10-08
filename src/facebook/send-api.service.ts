@@ -23,7 +23,7 @@ export class SendApiService {
         { params: request.params },
       );
       this.logger.log(
-        `Message sent with status ${JSON.stringify(facebookResponse)}`,
+        `Message sent with status ${JSON.stringify(facebookResponse.data)}`,
       );
       return true;
     } catch (error) {
@@ -44,7 +44,7 @@ export class SendApiService {
         { params: request.params },
       );
       this.logger.log(
-        `Attachment sent with status ${JSON.stringify(facebookResponse)}`,
+        `Attachment sent with status ${JSON.stringify(facebookResponse.data)}`,
       );
       return true;
     } catch (error) {
@@ -63,7 +63,7 @@ export class SendApiService {
         { params: request.params },
       );
       this.logger.log(
-        `Sending typing action: ${JSON.stringify(facebookResponse)}`,
+        `Sending typing action: ${JSON.stringify(facebookResponse.data)}`,
       );
       return true;
     } catch (error) {
