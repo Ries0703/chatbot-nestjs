@@ -143,12 +143,14 @@ export class MessengerWorkerService extends WorkerHost {
       }
     }
 
+    this.logger.log('creating stream...');
     const stream: AssistantStream = this.openAIClient.beta.threads.runs.stream(
       threadId,
       { assistant_id: assistantId },
     );
 
     for await (const chunk of stream) {
+      this.logger.log('stream running');
       this.eventEmitter.emit(chunk.event, chunk.data, threadId, {
         pageScopedId: messageEvent.sender.id,
         pageId: messageEvent.recipient.id,
