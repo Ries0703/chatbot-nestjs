@@ -113,6 +113,7 @@ export class MessengerWorkerService extends WorkerHost {
     }
 
     if (messageEvent.message.text) {
+      this.logger.log('received a text message, processing...');
       await this.openAIClient.beta.threads.messages.create(threadId, {
         role: 'user',
         content: messageEvent.message.text,
@@ -121,6 +122,7 @@ export class MessengerWorkerService extends WorkerHost {
       messageEvent.message.attachments &&
       messageEvent.message.attachments.length
     ) {
+      this.logger.log('received an attachment message, processing...');
       for (const attachment of messageEvent.message.attachments) {
         if (attachment.type === 'image') {
           await this.openAIClient.beta.threads.messages.create(threadId, {
@@ -136,6 +138,7 @@ export class MessengerWorkerService extends WorkerHost {
           });
         } else {
           // TODO: send back a default response indicating that our assistants do not handle attachment
+          this.logger.error('not text or image message, do not reply');
         }
       }
     }
