@@ -147,12 +147,15 @@ export class MessengerWorkerService extends WorkerHost {
       { assistant_id: assistantId },
     );
 
+    const facebookParams: FacebookParams = {
+      pageScopedId: messageEvent.sender.id,
+      pageId: messageEvent.recipient.id,
+      accessToken: pageAccessToken,
+    };
+    this.logger.log(JSON.stringify(facebookParams));
+
     for await (const chunk of stream) {
-      this.eventEmitter.emit(chunk.event, chunk.data, threadId, {
-        pageScopedId: messageEvent.sender.id,
-        pageId: messageEvent.recipient.id,
-        accessToken: pageAccessToken,
-      } as FacebookParams);
+      this.eventEmitter.emit(chunk.event, chunk.data, threadId, facebookParams);
     }
   }
 
