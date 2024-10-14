@@ -10,7 +10,10 @@ import {
 } from '../types/webhook-event.types';
 import { DatabaseService } from './database.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { SendActionRequest } from '../types/messenger.types';
+import {
+  SendActionRequest,
+  SendTextMessageRequest,
+} from '../types/messenger.types';
 import OpenAI from 'openai';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { ImageURLContentBlock } from 'openai/resources/beta/threads';
@@ -88,11 +91,23 @@ export class MessengerWorkerService extends WorkerHost {
             access_token: pageAccessToken,
           },
         } as SendActionRequest);
-        return await this.handleMessage(
-          messaging,
-          pageAccessToken,
-          assistantId,
-        );
+        await this.sendApiService.sendTextMessage({
+          body: {
+            recipient: {
+              id: messaging.sender.id,
+            },
+            message: {
+              text: 'asdfasdfasdfasdfasdf',
+            },
+          },
+          params: { access_token: pageAccessToken },
+        } as SendTextMessageRequest);
+        return;
+        // return await this.handleMessage(
+        //   messaging,
+        //   pageAccessToken,
+        //   assistantId,
+        // );
       }),
     );
   }
