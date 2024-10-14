@@ -9,6 +9,7 @@ import { config } from '../config/app.config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { RedisModule } from '@liaoliaots/nestjs-redis';
 import { Utils } from './utils';
+import { EventHandler } from './event-handler';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { Utils } from './utils';
   ],
   providers: [
     MessengerWorkerService,
+    EventHandler,
     SendApiService,
     DatabaseService,
     Utils,
