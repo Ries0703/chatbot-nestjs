@@ -39,7 +39,7 @@ export class EventHandler {
   @OnEvent('thread.run.in_progress', { async: true }) handleRunInProgressEvent(
     run: Run,
   ) {
-    this.logger.log(`4 run_id = ${run.id} is in progress`);
+    this.logger.log(`run_id = ${run.id} is in progress`);
   }
 
   @OnEvent('thread.run.requires_action', { async: false })
@@ -152,6 +152,9 @@ export class EventHandler {
     facebookParams: FacebookParams,
   ) {
     this.logger.log(`message_id = ${message.id} completed, sending it out...`);
+    this.logger.log(
+      `assistant > ${(message.content[0] as TextContentBlock).text.value}`,
+    );
     try {
       await this.sendApiService.sendTextMessage({
         body: {
