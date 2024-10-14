@@ -14,7 +14,10 @@ import { Utils } from './utils';
   imports: [
     QueueModule,
     HttpModule,
-    EventEmitterModule,
+    EventEmitterModule.forRoot({
+      maxListeners: 100,
+      verboseMemoryLeak: true,
+    }),
     RedisModule.forRoot({
       config: {
         url: config.redisConfig.REDIS_URL,

@@ -41,7 +41,9 @@ export class MessengerWorkerService extends WorkerHost {
   * */
   async process(job: Job, token?: string): Promise<void> {
     const jobData: WebhookMessageEvent = job.data;
-    this.logger.log(`processing ${JSON.stringify(jobData)}`);
+    this.logger.log(
+      `processing ${JSON.stringify(jobData)} with redis token = ${token}`,
+    );
     await Promise.all(
       jobData.entry.map(async (entry: Entry): Promise<void> => {
         const messaging: MessagingEvent = entry.messaging[0];
