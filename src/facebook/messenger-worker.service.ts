@@ -113,30 +113,30 @@ export class MessengerWorkerService extends WorkerHost {
   }
 
   private async handleMessage(
-    messageEvent: MessagingEvent,
+    messagingEvent: MessagingEvent,
     pageAccessToken: string,
     assistantId: string,
   ): Promise<void> {
     const threadId = await this.getOrCreateThread(
-      messageEvent.sender.id,
-      messageEvent.recipient.id,
+      messagingEvent.sender.id,
+      messagingEvent.recipient.id,
     );
     if (!threadId) {
       return this.logger.error('error finding or creating thread');
     }
 
-    if (messageEvent.message.text) {
+    if (messagingEvent.message.text) {
       this.logger.log('received a text message, processing...');
       await this.openAIClient.beta.threads.messages.create(threadId, {
         role: 'user',
-        content: messageEvent.message.text,
+        content: messagingEvent.message.text,
       });
     } else if (
-      messageEvent.message.attachments &&
-      messageEvent.message.attachments.length
+      messagingEvent.message.attachments &&
+      messagingEvent.message.attachments.length
     ) {
       this.logger.log('received an attachment message, processing...');
-      for (const attachment of messageEvent.message.attachments) {
+      for (const attachment of messagingEvent.message.attachments) {
         if (attachment.type === 'image') {
           await this.openAIClient.beta.threads.messages.create(threadId, {
             role: 'user',
@@ -163,8 +163,8 @@ export class MessengerWorkerService extends WorkerHost {
     );
 
     const facebookParams: FacebookParams = {
-      pageScopedId: messageEvent.sender.id,
-      pageId: messageEvent.recipient.id,
+      pageScopedId: messagingEvent.sender.id,
+      pageId: messagingEvent.recipient.id,
       accessToken: pageAccessToken,
     };
     this.logger.log(JSON.stringify(facebookParams));

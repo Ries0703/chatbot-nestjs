@@ -151,7 +151,9 @@ export class EventHandler {
     message: Message,
     facebookParams: FacebookParams,
   ) {
-    this.logger.log(`message_id = ${message.id} completed, sending it out...`);
+    this.logger.log(
+      `message_id = ${message.id} completed, sending it out... ${facebookParams}`,
+    );
     this.logger.log(
       `assistant > ${(message.content[0] as TextContentBlock).text.value}`,
     );
