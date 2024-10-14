@@ -5,7 +5,7 @@ import { Message, Run, TextContentBlock } from 'openai/resources/beta/threads';
 import { RunStep } from 'openai/resources/beta/threads/runs';
 import { OpenAIError } from 'openai/error';
 import { DatabaseService } from './database.service';
-import { FacebookParams } from '../types/facebook-params';
+import { EventMetadata } from '../types/event-metadata';
 import { SendApiService } from './send-api.service';
 import { SendTextMessageRequest } from '../types/messenger.types';
 
@@ -43,13 +43,9 @@ export class EventHandler {
   }
 
   @OnEvent('thread.run.requires_action', { async: false })
-  handleRunRequiresActionEvent(
-    run: Run,
-    threadId: string,
-    facebookParams: FacebookParams,
-  ) {
+  handleRunRequiresActionEvent(run: Run, eventMetadata: EventMetadata) {
     this.logger.log(
-      `run_id = ${run.id} of thread ${threadId} needs to call functions, calling with facebookParams = ${JSON.stringify(facebookParams)}`,
+      `run_id = ${run.id} of thread ${eventMetadata.threadId} needs to call functions, calling with facebookParams = ${JSON.stringify(eventMetadata)}`,
     );
     this.logger.log('calling done, streaming...');
   }
@@ -149,10 +145,10 @@ export class EventHandler {
   @OnEvent('thread.message.completed', { async: false })
   async handleMessageCompletedEvent(
     message: Message,
-    facebookParams: FacebookParams,
+    eventMetadata: EventMetadata,
   ) {
     this.logger.log(
-      `message_id = ${message.id} completed, sending it out... ${facebookParams}`,
+      `message_id = ${message.id} completed, sending it out... ${eventMetadata}`,
     );
     this.logger.log(
       `assistant > ${(message.content[0] as TextContentBlock).text.value}`,
@@ -161,13 +157,13 @@ export class EventHandler {
       await this.sendApiService.sendTextMessage({
         body: {
           recipient: {
-            id: facebookParams.pageScopedId,
+            id: eventMetadata.pageScopedId,
           },
           message: {
             text: (message.content[0] as TextContentBlock).text.value,
           },
         },
-        params: { access_token: facebookParams.accessToken },
+        params: { access_token: eventMetadata.accessToken },
       } as SendTextMessageRequest);
     } catch (error) {
       this.logger.error(

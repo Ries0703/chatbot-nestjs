@@ -10,15 +10,12 @@ import {
 } from '../types/webhook-event.types';
 import { DatabaseService } from './database.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import {
-  SendActionRequest,
-  SendTextMessageRequest,
-} from '../types/messenger.types';
+import { SendActionRequest } from '../types/messenger.types';
 import OpenAI from 'openai';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { ImageURLContentBlock } from 'openai/resources/beta/threads';
 import { AssistantStream } from 'openai/lib/AssistantStream';
-import { FacebookParams } from '../types/facebook-params';
+import { EventMetadata } from '../types/event-metadata';
 
 @Processor(Platform.MESSENGER)
 export class MessengerWorkerService extends WorkerHost {
@@ -162,15 +159,16 @@ export class MessengerWorkerService extends WorkerHost {
       { assistant_id: assistantId },
     );
 
-    const facebookParams: FacebookParams = {
+    const eventMetadata: EventMetadata = {
       pageScopedId: messagingEvent.sender.id,
       pageId: messagingEvent.recipient.id,
       accessToken: pageAccessToken,
+      threadId: threadId,
     };
-    this.logger.log(JSON.stringify(facebookParams));
+    this.logger.log(JSON.stringify(eventMetadata));
 
     for await (const chunk of stream) {
-      this.eventEmitter.emit(chunk.event, chunk.data, threadId, facebookParams);
+      this.eventEmitter.emit(chunk.event, chunk.data, eventMetadata);
     }
   }
 
