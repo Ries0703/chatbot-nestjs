@@ -65,31 +65,29 @@ export class MessengerWorkerService extends WorkerHost {
             `page_id ${messaging.recipient.id} is not associated with any page access token`,
           );
         }
-        const senderActionPromises: Promise<boolean>[] = [
-          this.sendApiService.sendTypingAction({
-            body: {
-              recipient: {
-                id: messaging.sender.id,
-              },
-              sender_action: 'mark_seen',
+        await this.sendApiService.sendTypingAction({
+          body: {
+            recipient: {
+              id: messaging.sender.id,
             },
-            params: {
-              access_token: pageAccessToken,
+            sender_action: 'mark_seen',
+          },
+          params: {
+            access_token: pageAccessToken,
+          },
+        } as SendActionRequest);
+
+        await this.sendApiService.sendTypingAction({
+          body: {
+            recipient: {
+              id: messaging.sender.id,
             },
-          } as SendActionRequest),
-          this.sendApiService.sendTypingAction({
-            body: {
-              recipient: {
-                id: messaging.sender.id,
-              },
-              sender_action: 'typing_on',
-            },
-            params: {
-              access_token: pageAccessToken,
-            },
-          } as SendActionRequest),
-        ];
-        await Promise.all(senderActionPromises);
+            sender_action: 'typing_on',
+          },
+          params: {
+            access_token: pageAccessToken,
+          },
+        } as SendActionRequest);
         return await this.handleMessage(
           messaging,
           pageAccessToken,
