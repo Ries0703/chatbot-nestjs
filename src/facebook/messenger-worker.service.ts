@@ -150,7 +150,6 @@ export class MessengerWorkerService extends WorkerHost {
     );
 
     for await (const chunk of stream) {
-      this.logger.log('stream running');
       this.eventEmitter.emit(chunk.event, chunk.data, threadId, {
         pageScopedId: messageEvent.sender.id,
         pageId: messageEvent.recipient.id,

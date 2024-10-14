@@ -18,28 +18,32 @@ export class EventHandler {
     private readonly sendApiService: SendApiService,
   ) {}
 
-  @OnEvent('thread.created', { async: true })
-  async handleThreadCreatedEvent(thread: Thread) {
+  @OnEvent('thread.created', { async: true }) handleThreadCreatedEvent(
+    thread: Thread,
+  ) {
     this.logger.log(`thread_id = ${thread.id} created`);
   }
 
-  @OnEvent('thread.run.created', { async: true })
-  async handleRunCreatedEvent(run: Run) {
+  @OnEvent('thread.run.created', { async: true }) handleRunCreatedEvent(
+    run: Run,
+  ) {
     this.logger.log(`run_id = ${run.id} created`);
   }
 
-  @OnEvent('thread.run.queued', { async: true })
-  async handleRunQueuedEvent(run: Run) {
+  @OnEvent('thread.run.queued', { async: true }) handleRunQueuedEvent(
+    run: Run,
+  ) {
     this.logger.log(`run_id = ${run.id} queued`);
   }
 
-  @OnEvent('thread.run.in_progress', { async: true })
-  async handleRunInProgressEvent(run: Run) {
+  @OnEvent('thread.run.in_progress', { async: true }) handleRunInProgressEvent(
+    run: Run,
+  ) {
     this.logger.log(`4 run_id = ${run.id} is in progress`);
   }
 
   @OnEvent('thread.run.requires_action', { async: false })
-  async handleRunRequiresActionEvent(
+  handleRunRequiresActionEvent(
     run: Run,
     threadId: string,
     facebookParams: FacebookParams,
@@ -51,83 +55,93 @@ export class EventHandler {
   }
 
   // TODO: track usage from run
-  @OnEvent('thread.run.completed', { async: true })
-  async handleRunCompletedEvent(run: Run) {
+  @OnEvent('thread.run.completed', { async: true }) handleRunCompletedEvent(
+    run: Run,
+  ) {
     this.logger.log(`run_id = ${run.id} is completed`);
   }
 
-  @OnEvent('thread.run.incomplete', { async: true })
-  async handleRunIncompleteEvent(run: Run) {
+  @OnEvent('thread.run.incomplete', { async: true }) handleRunIncompleteEvent(
+    run: Run,
+  ) {
     this.logger.error(`run_id = ${run.id} is not completed`);
   }
 
-  @OnEvent('thread.run.failed', { async: true })
-  async handleRunFailedEvent(run: Run) {
+  @OnEvent('thread.run.failed', { async: true }) handleRunFailedEvent(
+    run: Run,
+  ) {
     this.logger.error(`run_id = ${run.id} failed`);
   }
 
-  @OnEvent('thread.run.cancelling', { async: true })
-  async handleRunCancellingEvent(run: Run) {
+  @OnEvent('thread.run.cancelling', { async: true }) handleRunCancellingEvent(
+    run: Run,
+  ) {
     this.logger.error(`run_id = ${run.id} is cancelling`);
   }
 
-  @OnEvent('thread.run.cancelled', { async: true })
-  async handleRunCancelledEvent(run: Run) {
+  @OnEvent('thread.run.cancelled', { async: true }) handleRunCancelledEvent(
+    run: Run,
+  ) {
     this.logger.error(`run_id = ${run.id} is cancelled`);
   }
 
-  @OnEvent('thread.run.expired', { async: true })
-  async handleRunExpiredEvent(run: Run) {
+  @OnEvent('thread.run.expired', { async: true }) handleRunExpiredEvent(
+    run: Run,
+  ) {
     this.logger.error(`run_id = ${run.id} is expired`);
   }
 
   @OnEvent('thread.run.step.created', { async: true })
-  async handleRunStepCreatedEvent(runStep: RunStep) {
+  handleRunStepCreatedEvent(runStep: RunStep) {
     this.logger.log(`run_step_id = ${runStep.id} created`);
   }
 
   @OnEvent('thread.run.step.in_progress', { async: true })
-  async handleRunStepInProgressEvent(runStep: RunStep) {
+  handleRunStepInProgressEvent(runStep: RunStep) {
     this.logger.log(`run_step_id = ${runStep.id} is in progress`);
   }
 
-  @OnEvent('thread.run.step.delta', { async: true })
-  async handleRunStepDeltaEvent(runStep: RunStep) {
+  @OnEvent('thread.run.step.delta', { async: true }) handleRunStepDeltaEvent(
+    runStep: RunStep,
+  ) {
     this.logger.log(`run_step_id = ${runStep.id} delta created`);
   }
 
   @OnEvent('thread.run.step.completed', { async: true })
-  async handleRunStepCompletedEvent(runStep: RunStep) {
+  handleRunStepCompletedEvent(runStep: RunStep) {
     this.logger.log(`run_step_id = ${runStep.id} completed`);
   }
 
-  @OnEvent('thread.run.step.failed', { async: true })
-  async handleRunStepFailedEvent(runStep: RunStep) {
+  @OnEvent('thread.run.step.failed', { async: true }) handleRunStepFailedEvent(
+    runStep: RunStep,
+  ) {
     this.logger.error(`run_step_id = ${runStep.id} failed`);
   }
 
   @OnEvent('thread.run.step.cancelled', { async: true })
-  async handleRunStepCancelledEvent(runStep: RunStep) {
+  handleRunStepCancelledEvent(runStep: RunStep) {
     this.logger.error(`run_step_id = ${runStep.id} cancelled`);
   }
 
   @OnEvent('thread.run.step.expired', { async: true })
-  async handleRunStepExpiredEvent(runStep: RunStep) {
+  handleRunStepExpiredEvent(runStep: RunStep) {
     this.logger.error(`run_step_id = ${runStep.id} expired`);
   }
 
-  @OnEvent('thread.message.created', { async: true })
-  async handleMessageCreatedEvent(message: Message) {
+  @OnEvent('thread.message.created', { async: true }) handleMessageCreatedEvent(
+    message: Message,
+  ) {
     this.logger.log(`message_id = ${message.id} created`);
   }
 
   @OnEvent('thread.message.in_progress', { async: true })
-  async handleMessageInProgressEvent(message: Message) {
+  handleMessageInProgressEvent(message: Message) {
     this.logger.log(`message_id = ${message.id} is in progress`);
   }
 
-  @OnEvent('thread.message.delta', { async: true })
-  async handleMessageDeltaEvent(message: Message) {
+  @OnEvent('thread.message.delta', { async: true }) handleMessageDeltaEvent(
+    message: Message,
+  ) {
     this.logger.log(`message_id = ${message.id} delta created`);
   }
 
@@ -159,18 +173,16 @@ export class EventHandler {
   }
 
   @OnEvent('thread.message.incomplete', { async: true })
-  async handleMessageIncompleteEvent(message: Message) {
+  handleMessageIncompleteEvent(message: Message) {
     this.logger.error(`message_id = ${message.id} is not completed`);
   }
 
   // TODO: implement thread migration
-  @OnEvent('error', { async: true })
-  async handleErrorEvent(error: OpenAIError) {
+  @OnEvent('error', { async: true }) handleErrorEvent(error: OpenAIError) {
     this.logger.error('an error occurred', error);
   }
 
-  @OnEvent('done', { async: true })
-  async handleDoneEvent(payload: any) {
+  @OnEvent('done', { async: true }) handleDoneEvent(payload: any) {
     this.logger.log(`everything is done`, payload);
   }
 }

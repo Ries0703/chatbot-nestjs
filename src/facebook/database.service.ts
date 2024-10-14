@@ -25,16 +25,14 @@ export class DatabaseService {
     let client: PoolClient;
     try {
       client = await this.pool.connect();
-      const results = await client.query<{
-        threadId: string;
-      }>(
+      const results = await client.query(
         'SELECT thread_id FROM facebook_page_user_thread WHERE page_scoped_id = $1 AND page_id = $2',
         [psId, pageId],
       );
       if (!results.rows.length) {
         return null;
       }
-      return results.rows[0].threadId;
+      return results.rows[0].thread_id;
     } catch (error) {
       this.logger.error('error getting thread_id', error);
     } finally {
