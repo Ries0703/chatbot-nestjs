@@ -5,7 +5,7 @@ import { WebhookModule } from './webhook/webhook.module';
 async function bootstrap() {
   const app = await NestFactory.create(WebhookModule);
   await app.listen(process.env.PORT, (): void => {
-    console.log('listening at port', process.env.PORT);
+    console.log('listening at port', 3000);
   });
 }
 

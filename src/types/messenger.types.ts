@@ -46,7 +46,7 @@ export type SendActionRequest = {
     recipient: {
       id: string;
     };
-    sender_action: string;
+    sender_action: 'mark_seen' | 'typing_on';
   };
   params: {
     access_token: string;

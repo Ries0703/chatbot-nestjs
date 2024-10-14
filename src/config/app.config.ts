@@ -1,7 +1,7 @@
-import dotenv from 'dotenv';
+import { configDotenv } from 'dotenv';
 import process from 'node:process';
 
-dotenv.config();
+configDotenv();
 
 const environment = process.env.NODE_ENV;
 
@@ -27,7 +27,6 @@ function validateEnvVar(
   return envVar;
 }
 
-console.log(environment);
 type Config = {
   appConfig: {
     PORT: number;
@@ -41,6 +40,7 @@ type Config = {
     REDIS_HOST: string;
     REDIS_PORT: number;
     REDIS_PASSWORD: string | undefined;
+    REDIS_URL: string;
   };
 
   facebookConfig: {
@@ -73,6 +73,7 @@ const prodConfig: Config = {
       true,
     ) as number,
     REDIS_PASSWORD: process.env.REDIS_PASSWORD, // Optional, no validation required
+    REDIS_URL: process.env.REDIS_URL,
   },
 
   facebookConfig: {
@@ -114,6 +115,7 @@ const devConfig: Config = {
       true,
     ) as number,
     REDIS_PASSWORD: process.env.REDIS_PASSWORD, // Optional, no validation required
+    REDIS_URL: process.env.REDIS_URL,
   },
 
   facebookConfig: {

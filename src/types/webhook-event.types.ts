@@ -47,3 +47,17 @@ export type WebhookMessageEvent = {
   object: string;
   entry: Array<Entry>;
 };
+
+export type WebhookEvent = {
+  sender: Sender;
+  recipient: Recipient;
+  timestamp: number;
+};
+
+export type Sender = {
+  id: string;
+};
+
+export type Recipient = {
+  id: string;
+};
