@@ -28,7 +28,7 @@ export class SendApiService {
       return true;
     } catch (error) {
       this.logger.error(
-        `Method: ${this.sendTextMessage.name}, cannot send text message, the response is ${error}`,
+        `Method: ${this.sendTextMessage.name}, cannot send text message, the response is ${error.message}`,
       );
       return false;
     }
