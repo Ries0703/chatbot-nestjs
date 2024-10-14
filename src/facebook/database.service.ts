@@ -66,16 +66,14 @@ export class DatabaseService {
     let client: PoolClient;
     try {
       client = await this.pool.connect();
-      const results = await client.query<{
-        openAIId: string;
-      }>(
-        'SELECT cb.openai_id from chat_bot cb JOIN facebook_page fp ON cb.chat_bot_id = fp.chatbot_id AND fp.facebook_page_id = $1 AND cb.is_active = true',
+      const results = await client.query(
+        'SELECT chat_bot.openai_id from chat_bot JOIN facebook_page ON chat_bot.chat_bot_id = facebook_page.chatbot_id AND facebook_page.facebook_page_id = $1 AND chat_bot.is_active = true',
         [pageId],
       );
       if (!results.rows.length) {
         return null;
       }
-      return results.rows[0].openAIId;
+      return results.rows[0].openai_id;
     } catch (error) {
       this.logger.error('Error fetching assistant_id:', error.message);
     } finally {
