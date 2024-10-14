@@ -91,23 +91,23 @@ export class MessengerWorkerService extends WorkerHost {
             access_token: pageAccessToken,
           },
         } as SendActionRequest);
-        await this.sendApiService.sendTextMessage({
-          body: {
-            recipient: {
-              id: messaging.sender.id,
-            },
-            message: {
-              text: 'asdfasdfasdfasdfasdf',
-            },
-          },
-          params: { access_token: pageAccessToken },
-        } as SendTextMessageRequest);
-        return;
-        // return await this.handleMessage(
-        //   messaging,
-        //   pageAccessToken,
-        //   assistantId,
-        // );
+        // await this.sendApiService.sendTextMessage({
+        //   body: {
+        //     recipient: {
+        //       id: messaging.sender.id,
+        //     },
+        //     message: {
+        //       text: 'asdfasdfasdfasdfasdf',
+        //     },
+        //   },
+        //   params: { access_token: pageAccessToken },
+        // } as SendTextMessageRequest);
+        // return;
+        return await this.handleMessage(
+          messaging,
+          pageAccessToken,
+          assistantId,
+        );
       }),
     );
   }
