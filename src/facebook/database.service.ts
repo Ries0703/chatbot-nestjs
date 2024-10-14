@@ -85,16 +85,14 @@ export class DatabaseService {
     let client: PoolClient;
     try {
       client = await this.pool.connect();
-      const results = await client.query<{
-        pageAccessToken: string;
-      }>(
+      const results = await client.query(
         'SELECT page_access_token from facebook_page WHERE facebook_page_id = $1',
         [pageId],
       );
       if (!results.rows.length) {
         return null;
       }
-      return results.rows[0].pageAccessToken;
+      return results.rows[0].page_access_token;
     } catch (error) {
       this.logger.error('Error fetching page_access_token:', error.message);
     } finally {
