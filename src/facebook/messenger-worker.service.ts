@@ -10,16 +10,33 @@ import {
 } from '../types/webhook-event.types';
 import { DatabaseService } from './database.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { SendActionRequest } from '../types/messenger.types';
+import {
+  SendActionRequest,
+  SendTextMessageRequest,
+} from '../types/messenger.types';
 import OpenAI from 'openai';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { ImageURLContentBlock } from 'openai/resources/beta/threads';
 import { AssistantStream } from 'openai/lib/AssistantStream';
 import { EventMetadata } from '../types/event-metadata';
+import Redis from 'ioredis';
+import { TextContentBlockParam } from 'openai/src/resources/beta/threads/messages';
 
 @Processor(Platform.MESSENGER)
 export class MessengerWorkerService extends WorkerHost {
   private readonly logger = new Logger(MessengerWorkerService.name);
+  private readonly redisClient: Redis;
+  private readonly isTerminalStatus = {
+    queued: false,
+    in_progress: false,
+    requires_action: false,
+    cancelling: false,
+    cancelled: true,
+    failed: true,
+    completed: true,
+    incomplete: true,
+    expired: true,
+  };
 
   constructor(
     private readonly sendApiService: SendApiService,
@@ -29,21 +46,19 @@ export class MessengerWorkerService extends WorkerHost {
     private readonly redisService: RedisService,
   ) {
     super();
+    try {
+      this.redisClient = redisService.getOrThrow();
+    } catch (error) {
+      this.logger.error(
+        'cannot connect to redis',
+        JSON.stringify(error.message),
+      );
+    }
   }
 
-  /*
-  TODO: implement response logic
-    Step 1: query the database for the assistant_id messaging.recipient.id
-      if assistant_id is not null, proceed with the following steps
-    Step 2: query the database for the and page_access_token using messaging.recipient.id
-    Step 3: send typing-action 'seen' and 'typing'
-    Step 4: process messaging.message
-  * */
   async process(job: Job, token?: string): Promise<void> {
     const jobData: WebhookMessageEvent = job.data;
-    this.logger.log(
-      `processing ${JSON.stringify(jobData)} with redis token = ${token}`,
-    );
+    this.logger.log(`processing job with redis token = ${token}`);
     await Promise.all(
       jobData.entry.map(async (entry: Entry): Promise<void> => {
         const messaging: MessagingEvent = entry.messaging[0];
@@ -88,18 +103,6 @@ export class MessengerWorkerService extends WorkerHost {
             access_token: pageAccessToken,
           },
         } as SendActionRequest);
-        // await this.sendApiService.sendTextMessage({
-        //   body: {
-        //     recipient: {
-        //       id: messaging.sender.id,
-        //     },
-        //     message: {
-        //       text: 'asdfasdfasdfasdfasdf',
-        //     },
-        //   },
-        //   params: { access_token: pageAccessToken },
-        // } as SendTextMessageRequest);
-        // return;
         return await this.handleMessage(
           messaging,
           pageAccessToken,
@@ -114,16 +117,34 @@ export class MessengerWorkerService extends WorkerHost {
     pageAccessToken: string,
     assistantId: string,
   ): Promise<void> {
-    const threadId = await this.getOrCreateThread(
+    const threadId = await this.getThread(
       messagingEvent.sender.id,
       messagingEvent.recipient.id,
     );
     if (!threadId) {
-      return this.logger.error('error finding or creating thread');
+      return this.logger.error('error finding thread');
     }
-
+    const latestRun = (
+      await this.openAIClient.beta.threads.runs.list(threadId, {
+        limit: 1,
+      })
+    ).data;
     if (messagingEvent.message.text) {
       this.logger.log('received a text message, processing...');
+      if (
+        !latestRun ||
+        !latestRun.length ||
+        !this.isTerminalStatus[latestRun[0].status]
+      ) {
+        this.logger.log('pushing the text message to redis');
+        const messageKey = `message-list:${threadId}-${messagingEvent.sender.id}`;
+        const textValue: string = JSON.stringify({
+          type: 'text',
+          text: messagingEvent.message.text,
+        } as TextContentBlockParam);
+        await this.redisClient.rpush(messageKey, textValue);
+        return;
+      }
       await this.openAIClient.beta.threads.messages.create(threadId, {
         role: 'user',
         content: messagingEvent.message.text,
@@ -133,22 +154,70 @@ export class MessengerWorkerService extends WorkerHost {
       messagingEvent.message.attachments.length
     ) {
       this.logger.log('received an attachment message, processing...');
-      for (const attachment of messagingEvent.message.attachments) {
-        if (attachment.type === 'image') {
-          await this.openAIClient.beta.threads.messages.create(threadId, {
-            role: 'user',
-            content: [
-              {
-                type: 'image_url',
-                image_url: {
-                  url: attachment.payload.url,
+      if (
+        !latestRun ||
+        !latestRun.length ||
+        !this.isTerminalStatus[latestRun[0].status]
+      ) {
+        for (const attachment of messagingEvent.message.attachments) {
+          if (attachment.type === 'image') {
+            this.logger.log('pushing the image_url message to redis');
+            const messageKey = `message-list:${threadId}-${messagingEvent.sender.id}`;
+            const imageUrlValue: string = JSON.stringify({
+              type: 'image_url',
+              image_url: {
+                url: attachment.payload.url,
+              },
+            } as ImageURLContentBlock);
+            await this.redisClient.rpush(messageKey, imageUrlValue);
+          } else {
+            this.logger.error(
+              'not text or image message, sending automatic reply',
+            );
+            await this.sendApiService.sendTextMessage({
+              body: {
+                recipient: {
+                  id: messagingEvent.sender.id,
+                },
+                message: {
+                  text: 'chúng tôi không nhận file do sợ virus',
                 },
               },
-            ] as Array<ImageURLContentBlock>,
-          });
-        } else {
-          // TODO: send back a default response indicating that our assistants do not handle attachment
-          this.logger.error('not text or image message, do not reply');
+              params: { access_token: pageAccessToken },
+            } as SendTextMessageRequest);
+          }
+        }
+        return;
+      } else {
+        for (const attachment of messagingEvent.message.attachments) {
+          if (attachment.type === 'image') {
+            await this.openAIClient.beta.threads.messages.create(threadId, {
+              role: 'user',
+              content: [
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: attachment.payload.url,
+                  },
+                },
+              ] as Array<ImageURLContentBlock>,
+            });
+          } else {
+            this.logger.error(
+              'not text or image message, sending automatic reply',
+            );
+            await this.sendApiService.sendTextMessage({
+              body: {
+                recipient: {
+                  id: messagingEvent.sender.id,
+                },
+                message: {
+                  text: 'chúng tôi không nhận file do sợ virus',
+                },
+              },
+              params: { access_token: pageAccessToken },
+            } as SendTextMessageRequest);
+          }
         }
       }
     }
@@ -164,19 +233,15 @@ export class MessengerWorkerService extends WorkerHost {
       pageId: messagingEvent.recipient.id,
       accessToken: pageAccessToken,
       threadId: threadId,
+      assistantId: assistantId,
     };
-    this.logger.log(JSON.stringify(eventMetadata));
 
     for await (const chunk of stream) {
       this.eventEmitter.emit(chunk.event, chunk.data, eventMetadata);
     }
   }
 
-  // returns a thread_id string
-  private async getOrCreateThread(
-    psId: string,
-    pageId: string,
-  ): Promise<string> {
+  private async getThread(psId: string, pageId: string): Promise<string> {
     try {
       let threadId: string =
         await this.databaseService.findThreadIdByPsIdAndPageId(psId, pageId);
