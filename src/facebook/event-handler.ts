@@ -281,7 +281,7 @@ export class EventHandler {
       const messages: Message[] = (
         await this.openAIClient.beta.threads.messages.list(
           eventMetaData.threadId,
-          { limit: 200 },
+          { limit: 100 },
         )
       ).data;
       const newThread = await this.openAIClient.beta.threads.create();
