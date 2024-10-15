@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { Thread } from 'openai/resources/beta';
 import {
+  ImageURLContentBlock,
   Message,
   MessageCreateParams,
   Run,
@@ -16,7 +17,10 @@ import { SendTextMessageRequest } from '../types/messenger.types';
 import OpenAI from 'openai';
 import Redis from 'ioredis';
 import { RedisService } from '@liaoliaots/nestjs-redis';
-import { MessageContentPartParam } from 'openai/src/resources/beta/threads/messages';
+import {
+  MessageContentPartParam,
+  TextContentBlockParam,
+} from 'openai/src/resources/beta/threads/messages';
 import { AssistantStream } from 'openai/lib/AssistantStream';
 
 @Injectable()
@@ -292,7 +296,15 @@ export class EventHandler {
             content: message.content
               .filter((message) => message.type !== 'refusal')
               .map((message) => {
-                return message as MessageContentPartParam;
+                switch (message.type) {
+                  case 'text':
+                    return {
+                      type: 'text',
+                      text: message.text.value,
+                    } as TextContentBlockParam;
+                  case 'image_url':
+                    return message as ImageURLContentBlock;
+                }
               }),
           } as MessageCreateParams;
         },
