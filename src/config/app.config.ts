@@ -119,7 +119,7 @@ const devConfig: Config = {
       'REDIS_PORT',
       true,
     ) as number,
-    REDIS_PASSWORD: process.env.REDIS_PASSWORD, // Optional, no validation required
+    REDIS_PASSWORD: process.env.REDIS_PASSWORD,
     REDIS_URL: process.env.REDIS_URL,
   },
 

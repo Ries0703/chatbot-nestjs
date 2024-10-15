@@ -1,7 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { Thread } from 'openai/resources/beta';
-import { Message, Run, TextContentBlock } from 'openai/resources/beta/threads';
+import {
+  Message,
+  MessageCreateParams,
+  Run,
+  TextContentBlock,
+} from 'openai/resources/beta/threads';
 import { RunStep } from 'openai/resources/beta/threads/runs';
 import { OpenAIError } from 'openai/error';
 import { DatabaseService } from './database.service';
@@ -82,6 +87,11 @@ export class EventHandler {
     if (id) {
       this.logger.log(`expense_id = ${id}`);
     }
+    this.eventEmitter.emit(
+      'error',
+      new OpenAIError('funny business'),
+      eventMetadata,
+    );
   }
 
   @OnEvent('thread.run.incomplete') handleRunIncompleteEvent(run: Run) {
@@ -261,8 +271,73 @@ export class EventHandler {
   }
 
   // TODO: implement thread migration
-  @OnEvent('error') handleErrorEvent(error: OpenAIError) {
-    this.logger.error('an error occurred', error);
+  @OnEvent('error')
+  async handleErrorEvent(
+    error: OpenAIError,
+    eventMetaData: EventMetadataTypes,
+  ) {
+    this.logger.error('an error occurred, migrating thread', error);
+    try {
+      const messages: Message[] = (
+        await this.openAIClient.beta.threads.messages.list(
+          eventMetaData.threadId,
+          { limit: 200 },
+        )
+      ).data;
+      const newThread = await this.openAIClient.beta.threads.create();
+      const transformedCreateParams: MessageCreateParams[] = messages.map(
+        (message) => {
+          return {
+            role: message.role,
+            content: message.content
+              .filter((message) => message.type !== 'refusal')
+              .map((message) => {
+                return message as MessageContentPartParam;
+              }),
+          } as MessageCreateParams;
+        },
+      );
+      this.logger.log(JSON.stringify(transformedCreateParams));
+      const results = await Promise.all(
+        transformedCreateParams.map((transformedCreateParam) =>
+          this.openAIClient.beta.threads.messages.create(
+            newThread.id,
+            transformedCreateParam,
+          ),
+        ),
+      );
+      this.logger.log('finish migrating thread');
+      this.logger.log(JSON.stringify(results));
+      await this.databaseService.saveThreadId(
+        newThread.id,
+        eventMetaData.pageScopedId,
+        eventMetaData.pageId,
+      );
+      const stream = this.openAIClient.beta.threads.runs.stream(newThread.id, {
+        assistant_id: eventMetaData.assistantId,
+      });
+      eventMetaData.threadId = newThread.id;
+      for await (const chunk of stream) {
+        this.eventEmitter.emit(chunk.event, chunk.data, eventMetaData);
+      }
+    } catch (e) {
+      this.logger.error(
+        'cannot migrate thread, remove thread from database...',
+        JSON.stringify(e),
+      );
+      await this.sendApiService.sendTextMessage({
+        body: {
+          recipient: {
+            id: eventMetaData.pageScopedId,
+          },
+          message: {
+            text: 'loi he thong, xin thu lai',
+          },
+        },
+        params: { access_token: eventMetaData.accessToken },
+      } as SendTextMessageRequest);
+      // TODO: write sql to delete
+    }
   }
 
   @OnEvent('done') handleDoneEvent(payload: any) {
