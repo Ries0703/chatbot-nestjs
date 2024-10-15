@@ -22,7 +22,7 @@ import { EventMetadata } from '../types/event-metadata';
 import Redis from 'ioredis';
 import { TextContentBlockParam } from 'openai/src/resources/beta/threads/messages';
 
-@Processor(Platform.MESSENGER)
+@Processor(Platform.MESSENGER, { concurrency: 100 })
 export class MessengerWorkerService extends WorkerHost {
   private readonly logger = new Logger(MessengerWorkerService.name);
   private readonly redisClient: Redis;
