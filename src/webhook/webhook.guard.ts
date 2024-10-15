@@ -17,17 +17,11 @@ export class FacebookWebhookGuard implements CanActivate {
     const body = request.body;
 
     if (!signature) {
-      throw new HttpException(
-        'Missing Facebook Webhook Signature',
-        HttpStatus.FORBIDDEN,
-      );
+      throw new HttpException('ranh con ai cho hack??', HttpStatus.FORBIDDEN);
     }
 
     if (!this.isValidSignature(signature, body)) {
-      throw new HttpException(
-        'Invalid Facebook Webhook Signature',
-        HttpStatus.FORBIDDEN,
-      );
+      throw new HttpException('ranh con ai cho hack??', HttpStatus.FORBIDDEN);
     }
 
     return true;
