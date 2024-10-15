@@ -71,8 +71,17 @@ export class EventHandler {
   }
 
   // TODO: track usage from run
-  @OnEvent('thread.run.completed') handleRunCompletedEvent(run: Run) {
+  @OnEvent('thread.run.completed', { async: true })
+  async handleRunCompletedEvent(run: Run, eventMetadata: EventMetadata) {
     this.logger.log(`run_id = ${run.id} is completed`);
+    const id: number = await this.databaseService.saveAssistantExpense({
+      assistantId: eventMetadata.assistantId,
+      inputToken: run.usage.prompt_tokens,
+      outputToken: run.usage.completion_tokens,
+    });
+    if (id) {
+      this.logger.error('expense_id = ', id);
+    }
   }
 
   @OnEvent('thread.run.incomplete') handleRunIncompleteEvent(run: Run) {

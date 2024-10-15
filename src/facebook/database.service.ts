@@ -97,4 +97,29 @@ export class DatabaseService {
       client?.release();
     }
   }
+
+  async saveAssistantExpense(expense: {
+    assistantId: string;
+    inputToken: number;
+    outputToken: number;
+  }): Promise<number> {
+    let client: PoolClient;
+    this.logger.log('saving expense for ', JSON.stringify(expense));
+    try {
+      client = await this.pool.connect();
+      const results = await client.query(
+        'INSERT INTO chatbot_expense (chatbot_openai_id, input_token, output_token) VALUES ($1, $2, $3) RETURNING id',
+        [expense.assistantId, expense.inputToken, expense.outputToken],
+      );
+      if (!results.rows.length) {
+        this.logger.error('Error saving expense:', expense);
+        return null;
+      }
+      return results.rows[0].id;
+    } catch (error) {
+      this.logger.error('error saving expense', JSON.stringify(error));
+    } finally {
+      client?.release();
+    }
+  }
 }
