@@ -80,7 +80,7 @@ export class EventHandler {
       outputToken: run.usage.completion_tokens,
     });
     if (id) {
-      this.logger.error('expense_id = ', id);
+      this.logger.log(`expense_id = ${id}`);
     }
   }
 
