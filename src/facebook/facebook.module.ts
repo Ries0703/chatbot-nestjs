@@ -8,7 +8,6 @@ import OpenAI from 'openai';
 import { config } from '../config/app.config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { RedisModule } from '@liaoliaots/nestjs-redis';
-import { Utils } from './utils';
 import { EventHandler } from './event-handler';
 
 @Module({
@@ -30,7 +29,6 @@ import { EventHandler } from './event-handler';
     EventHandler,
     SendApiService,
     DatabaseService,
-    Utils,
     {
       provide: OpenAI,
       useValue: new OpenAI({ apiKey: config.openAIConfig.OPENAI_API_KEY }),
