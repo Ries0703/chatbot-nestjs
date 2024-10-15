@@ -1,9 +1,7 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
-import { config } from '../config/app.config';
-import { Platform } from '../config/enum';
-import { QueueService } from './queue.service';
-import { QueueStrategy } from './queue.strategy';
+import { config } from './config/app.config';
+import { Platform } from './config/enum';
 
 @Module({
   imports: [
@@ -16,7 +14,6 @@ import { QueueStrategy } from './queue.strategy';
     }),
     BullModule.registerQueue({ name: Platform.MESSENGER }),
   ],
-  providers: [QueueService, QueueStrategy],
-  exports: [QueueService],
+  exports: [BullModule],
 })
 export class QueueModule {}

@@ -8,15 +8,19 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { QueueService } from '../queue/queue.service';
 import { config } from '../config/app.config';
 import { Platform } from '../config/enum';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 
 @Controller('facebook')
 export class FacebookController {
   private readonly logger = new Logger(FacebookController.name);
+  private readonly queue: Queue;
 
-  constructor(private readonly queueService: QueueService) {}
+  constructor(@InjectQueue(Platform.MESSENGER) messengerQueue: Queue) {
+    this.queue = messengerQueue;
+  }
 
   @Get('/webhook') getWebhook(@Query() query: any): string {
     const isValid =
@@ -35,7 +39,10 @@ export class FacebookController {
       throw new HttpException('Not a page event', HttpStatus.NOT_FOUND);
     }
     try {
-      await this.queueService.enqueue(Platform.MESSENGER, body);
+      await this.queue.add(Platform.MESSENGER, body, {
+        removeOnComplete: true,
+        removeOnFail: true,
+      });
       return 'EVENT_RECEIVED';
     } catch (error) {
       this.logger.error('Error adding enqueuing event:', error.message);

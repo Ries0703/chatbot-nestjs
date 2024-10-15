@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { FacebookController } from './facebook.controller';
-import { QueueModule } from '../queue/queue.module';
+import { QueueModule } from '../queue.module';
 
 @Module({
   controllers: [FacebookController],
