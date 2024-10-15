@@ -91,11 +91,6 @@ export class EventHandler {
     if (id) {
       this.logger.log(`expense_id = ${id}`);
     }
-    this.eventEmitter.emit(
-      'error',
-      new OpenAIError('funny business'),
-      eventMetadata,
-    );
   }
 
   @OnEvent('thread.run.incomplete') handleRunIncompleteEvent(run: Run) {
@@ -325,14 +320,14 @@ export class EventHandler {
         eventMetaData.pageScopedId,
         eventMetaData.pageId,
       );
-      // const stream = this.openAIClient.beta.threads.runs.stream(newThread.id, {
-      //   assistant_id: eventMetaData.assistantId,
-      // });
-      // const newEventMetaData: EventMetadataTypes = { ...eventMetaData };
-      // newEventMetaData.threadId = newThread.id;
-      // for await (const chunk of stream) {
-      //   this.eventEmitter.emit(chunk.event, chunk.data, newEventMetaData);
-      // }
+      const stream = this.openAIClient.beta.threads.runs.stream(newThread.id, {
+        assistant_id: eventMetaData.assistantId,
+      });
+      const newEventMetaData: EventMetadataTypes = { ...eventMetaData };
+      newEventMetaData.threadId = newThread.id;
+      for await (const chunk of stream) {
+        this.eventEmitter.emit(chunk.event, chunk.data, newEventMetaData);
+      }
     } catch (e) {
       this.logger.error(
         'cannot migrate thread, remove thread from database...',
