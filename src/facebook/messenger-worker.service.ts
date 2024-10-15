@@ -132,8 +132,8 @@ export class MessengerWorkerService extends WorkerHost {
     if (messagingEvent.message.text) {
       this.logger.log('received a text message, processing...');
       if (
-        !latestRun ||
-        !latestRun.length ||
+        !latestRun &&
+        !latestRun.length &&
         !this.isTerminalStatus[latestRun[0].status]
       ) {
         this.logger.log('pushing the text message to redis');
