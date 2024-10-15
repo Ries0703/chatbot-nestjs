@@ -313,13 +313,13 @@ export class EventHandler {
         eventMetaData.pageScopedId,
         eventMetaData.pageId,
       );
-      const stream = this.openAIClient.beta.threads.runs.stream(newThread.id, {
-        assistant_id: eventMetaData.assistantId,
-      });
-      eventMetaData.threadId = newThread.id;
-      for await (const chunk of stream) {
-        this.eventEmitter.emit(chunk.event, chunk.data, eventMetaData);
-      }
+      // const stream = this.openAIClient.beta.threads.runs.stream(newThread.id, {
+      //   assistant_id: eventMetaData.assistantId,
+      // });
+      // eventMetaData.threadId = newThread.id;
+      // for await (const chunk of stream) {
+      //   this.eventEmitter.emit(chunk.event, chunk.data, eventMetaData);
+      // }
     } catch (e) {
       this.logger.error(
         'cannot migrate thread, remove thread from database...',
