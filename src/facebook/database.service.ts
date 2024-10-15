@@ -122,4 +122,25 @@ export class DatabaseService {
       client?.release();
     }
   }
+
+  async deleteThreadId(threadId: string): Promise<string> {
+    let client: PoolClient;
+    this.logger.log('deleting thread_id: ', JSON.stringify(threadId));
+    try {
+      client = await this.pool.connect();
+      const results = await client.query(
+        'DELETE FROM facebook_page_user_thread WHERE thread_id = $1 RETURNING thread_id',
+        [threadId],
+      );
+      if (!results.rows.length) {
+        this.logger.error('cannot delete thread');
+        return null;
+      }
+      return results.rows[0].thread_id;
+    } catch (e) {
+      this.logger.error('cannot delete thread', JSON.stringify(e));
+    } finally {
+      client?.release();
+    }
+  }
 }

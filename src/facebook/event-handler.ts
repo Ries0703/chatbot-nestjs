@@ -285,7 +285,7 @@ export class EventHandler {
       const messages: Message[] = (
         await this.openAIClient.beta.threads.messages.list(
           eventMetaData.threadId,
-          { limit: 100 },
+          { limit: 200 },
         )
       ).data;
       const newThread = await this.openAIClient.beta.threads.create();
@@ -328,9 +328,10 @@ export class EventHandler {
       // const stream = this.openAIClient.beta.threads.runs.stream(newThread.id, {
       //   assistant_id: eventMetaData.assistantId,
       // });
-      // eventMetaData.threadId = newThread.id;
+      // const newEventMetaData: EventMetadataTypes = { ...eventMetaData };
+      // newEventMetaData.threadId = newThread.id;
       // for await (const chunk of stream) {
-      //   this.eventEmitter.emit(chunk.event, chunk.data, eventMetaData);
+      //   this.eventEmitter.emit(chunk.event, chunk.data, newEventMetaData);
       // }
     } catch (e) {
       this.logger.error(
@@ -348,7 +349,10 @@ export class EventHandler {
         },
         params: { access_token: eventMetaData.accessToken },
       } as SendTextMessageRequest);
-      // TODO: write sql to delete
+      const deletedThreadId = await this.databaseService.deleteThreadId(
+        eventMetaData.threadId,
+      );
+      this.logger.log(`threadId deleted = ${deletedThreadId}`);
     }
   }
 
