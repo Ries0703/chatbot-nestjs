@@ -5,7 +5,7 @@ import { Message, Run, TextContentBlock } from 'openai/resources/beta/threads';
 import { RunStep } from 'openai/resources/beta/threads/runs';
 import { OpenAIError } from 'openai/error';
 import { DatabaseService } from './database.service';
-import { EventMetadata } from '../types/event-metadata';
+import { EventMetadataTypes } from '../types/event-metadata.types';
 import { SendApiService } from './send-api.service';
 import { SendTextMessageRequest } from '../types/messenger.types';
 import OpenAI from 'openai';
@@ -62,7 +62,7 @@ export class EventHandler {
 
   @OnEvent('thread.run.requires_action') handleRunRequiresActionEvent(
     run: Run,
-    eventMetadata: EventMetadata,
+    eventMetadata: EventMetadataTypes,
   ) {
     this.logger.log(
       `run_id = ${run.id} of thread ${eventMetadata.threadId} needs to call functions, calling with facebookParams = ${JSON.stringify(eventMetadata)}`,
@@ -72,7 +72,7 @@ export class EventHandler {
 
   // TODO: track usage from run
   @OnEvent('thread.run.completed', { async: true })
-  async handleRunCompletedEvent(run: Run, eventMetadata: EventMetadata) {
+  async handleRunCompletedEvent(run: Run, eventMetadata: EventMetadataTypes) {
     this.logger.log(`run_id = ${run.id} is completed`);
     const id: number = await this.databaseService.saveAssistantExpense({
       assistantId: eventMetadata.assistantId,
@@ -163,7 +163,7 @@ export class EventHandler {
   @OnEvent('thread.message.completed')
   async handleMessageCompletedEvent(
     message: Message,
-    eventMetadata: EventMetadata,
+    eventMetadata: EventMetadataTypes,
   ) {
     this.logger.log(
       `message_id = ${message.id} completed, sending it out... ${eventMetadata}`,

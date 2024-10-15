@@ -1,4 +1,4 @@
-export type EventMetadata = {
+export type EventMetadataTypes = {
   pageScopedId: string;
   pageId: string;
   accessToken: string;

@@ -18,7 +18,7 @@ import OpenAI from 'openai';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { ImageURLContentBlock } from 'openai/resources/beta/threads';
 import { AssistantStream } from 'openai/lib/AssistantStream';
-import { EventMetadata } from '../types/event-metadata';
+import { EventMetadataTypes } from '../types/event-metadata.types';
 import Redis from 'ioredis';
 import { TextContentBlockParam } from 'openai/src/resources/beta/threads/messages';
 
@@ -228,7 +228,7 @@ export class MessengerWorkerService extends WorkerHost {
       { assistant_id: assistantId },
     );
 
-    const eventMetadata: EventMetadata = {
+    const eventMetadata: EventMetadataTypes = {
       pageScopedId: messagingEvent.sender.id,
       pageId: messagingEvent.recipient.id,
       accessToken: pageAccessToken,

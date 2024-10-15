@@ -46,6 +46,7 @@ type Config = {
   facebookConfig: {
     FACEBOOK_MESSAGE_URI: string;
     VERIFY_TOKEN: string;
+    FACEBOOK_APP_SECRET: string;
   };
 
   openAIConfig: {
@@ -84,6 +85,10 @@ const prodConfig: Config = {
     VERIFY_TOKEN: validateEnvVar(
       process.env.VERIFY_TOKEN,
       'VERIFY_TOKEN',
+    ) as string,
+    FACEBOOK_APP_SECRET: validateEnvVar(
+      process.env.FACEBOOK_APP_SECRET,
+      'FACEBOOK_APP_SECRET',
     ) as string,
   },
 
@@ -126,6 +131,10 @@ const devConfig: Config = {
     VERIFY_TOKEN: validateEnvVar(
       process.env.VERIFY_TOKEN,
       'VERIFY_TOKEN',
+    ) as string,
+    FACEBOOK_APP_SECRET: validateEnvVar(
+      process.env.FACEBOOK_APP_SECRET,
+      'FACEBOOK_APP_SECRET',
     ) as string,
   },
 
