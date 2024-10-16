@@ -15,19 +15,19 @@ export class FacebookWebhookGuard implements CanActivate {
   private readonly logger = new Logger(FacebookWebhookGuard.name);
 
   canActivate(context: ExecutionContext): boolean {
-    const request: Request = context.switchToHttp().getRequest();
-    const signature = request.headers['x-hub-signature-256'] as string;
-    const body = request.body;
-
-    if (!signature) {
-      this.logger.error('no facebook signature');
-      throw new HttpException('ranh con hack ccjv cut?', HttpStatus.FORBIDDEN);
-    }
-
-    if (!this.isValidSignature(signature, body)) {
-      this.logger.error('invalid facebook signature');
-      throw new HttpException('ranh con hack ccjv cut?', HttpStatus.FORBIDDEN);
-    }
+    // const request: Request = context.switchToHttp().getRequest();
+    // const signature = request.headers['x-hub-signature-256'] as string;
+    // const body = request.body;
+    //
+    // if (!signature) {
+    //   this.logger.error('no facebook signature');
+    //   throw new HttpException('ranh con hack ccjv cut?', HttpStatus.FORBIDDEN);
+    // }
+    //
+    // if (!this.isValidSignature(signature, body)) {
+    //   this.logger.error('invalid facebook signature');
+    //   throw new HttpException('ranh con hack ccjv cut?', HttpStatus.FORBIDDEN);
+    // }
 
     return true;
   }
