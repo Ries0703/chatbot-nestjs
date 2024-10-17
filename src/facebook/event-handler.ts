@@ -54,19 +54,19 @@ export class EventHandler {
   }
 
   @OnEvent('thread.created') handleThreadCreatedEvent(thread: Thread) {
-    this.logger.log(`thread_id = ${thread.id} created`);
+    // this.logger.log(`thread_id = ${thread.id} created`);
   }
 
   @OnEvent('thread.run.created') handleRunCreatedEvent(run: Run) {
-    this.logger.log(`run_id = ${run.id} created`);
+    // this.logger.log(`run_id = ${run.id} created`);
   }
 
   @OnEvent('thread.run.queued') handleRunQueuedEvent(run: Run) {
-    this.logger.log(`run_id = ${run.id} queued`);
+    // this.logger.log(`run_id = ${run.id} queued`);
   }
 
   @OnEvent('thread.run.in_progress') handleRunInProgressEvent(run: Run) {
-    this.logger.log(`run_id = ${run.id} is in progress`);
+    // this.logger.log(`run_id = ${run.id} is in progress`);
   }
 
   @OnEvent('thread.run.requires_action') handleRunRequiresActionEvent(
@@ -116,23 +116,23 @@ export class EventHandler {
   @OnEvent('thread.run.step.created') handleRunStepCreatedEvent(
     runStep: RunStep,
   ) {
-    this.logger.log(`run_step_id = ${runStep.id} created`);
+    // this.logger.log(`run_step_id = ${runStep.id} created`);
   }
 
   @OnEvent('thread.run.step.in_progress') handleRunStepInProgressEvent(
     runStep: RunStep,
   ) {
-    this.logger.log(`run_step_id = ${runStep.id} is in progress`);
+    // this.logger.log(`run_step_id = ${runStep.id} is in progress`);
   }
 
   @OnEvent('thread.run.step.delta') handleRunStepDeltaEvent(runStep: RunStep) {
-    this.logger.log(`run_step_id = ${runStep.id} delta created`);
+    // this.logger.log(`run_step_id = ${runStep.id} delta created`);
   }
 
   @OnEvent('thread.run.step.completed') handleRunStepCompletedEvent(
     runStep: RunStep,
   ) {
-    this.logger.log(`run_step_id = ${runStep.id} completed`);
+    // this.logger.log(`run_step_id = ${runStep.id} completed`);
   }
 
   @OnEvent('thread.run.step.failed') handleRunStepFailedEvent(
@@ -156,17 +156,17 @@ export class EventHandler {
   @OnEvent('thread.message.created') handleMessageCreatedEvent(
     message: Message,
   ) {
-    this.logger.log(`message_id = ${message.id} created`);
+    // this.logger.log(`message_id = ${message.id} created`);
   }
 
   @OnEvent('thread.message.in_progress') handleMessageInProgressEvent(
     message: Message,
   ) {
-    this.logger.log(`message_id = ${message.id} is in progress`);
+    // this.logger.log(`message_id = ${message.id} is in progress`);
   }
 
   @OnEvent('thread.message.delta') handleMessageDeltaEvent(message: Message) {
-    this.logger.log(`message_id = ${message.id} delta created`);
+    // this.logger.log(`message_id = ${message.id} delta created`);
   }
 
   @OnEvent('thread.message.completed')
