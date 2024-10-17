@@ -10,9 +10,9 @@ export class DatabaseService {
   constructor() {
     try {
       this.pool = new Pool({
-        connectionString: `${config.dbConfig.DATABASE_URL}?sslmode=require`,
+        connectionString: `${config.dbConfig.DATABASE_URL}`,
         ssl: {
-          rejectUnauthorized: true,
+          rejectUnauthorized: false,
         },
       });
       this.logger.log('database connected');
