@@ -62,15 +62,6 @@ export class MessengerWorkerService extends WorkerHost {
     await Promise.all(
       jobData.entry.map(async (entry: Entry): Promise<void> => {
         const messaging: MessagingEvent = entry.messaging[0];
-        const assistantId: string =
-          await this.databaseService.findOpenAIIdByPageId(
-            messaging.recipient.id,
-          );
-        if (!assistantId) {
-          return this.logger.error(
-            `page_id ${messaging.recipient.id} is not associated with any assistant`,
-          );
-        }
         const pageAccessToken: string =
           await this.databaseService.findPageAccessTokenByPageId(
             messaging.recipient.id,
@@ -80,29 +71,45 @@ export class MessengerWorkerService extends WorkerHost {
             `page_id ${messaging.recipient.id} is not associated with any page access token`,
           );
         }
-        await this.sendApiService.sendTypingAction({
-          body: {
-            recipient: {
-              id: messaging.sender.id,
+        if (
+          !(await this.sendApiService.sendTypingAction({
+            body: {
+              recipient: {
+                id: messaging.sender.id,
+              },
+              sender_action: 'mark_seen',
             },
-            sender_action: 'mark_seen',
-          },
-          params: {
-            access_token: pageAccessToken,
-          },
-        } as SendActionRequest);
-
-        await this.sendApiService.sendTypingAction({
-          body: {
-            recipient: {
-              id: messaging.sender.id,
+            params: {
+              access_token: pageAccessToken,
             },
-            sender_action: 'typing_on',
-          },
-          params: {
-            access_token: pageAccessToken,
-          },
-        } as SendActionRequest);
+          } as SendActionRequest))
+        ) {
+          this.logger.error('an error occurred while sending typing action');
+        }
+        if (
+          await this.sendApiService.sendTypingAction({
+            body: {
+              recipient: {
+                id: messaging.sender.id,
+              },
+              sender_action: 'typing_on',
+            },
+            params: {
+              access_token: pageAccessToken,
+            },
+          } as SendActionRequest)
+        ) {
+          this.logger.error('an error occurred while sending typing action');
+        }
+        const assistantId: string =
+          await this.databaseService.findOpenAIIdByPageId(
+            messaging.recipient.id,
+          );
+        if (!assistantId) {
+          return this.logger.error(
+            `page_id ${messaging.recipient.id} is not associated with any assistant`,
+          );
+        }
         return await this.handleMessage(
           messaging,
           pageAccessToken,

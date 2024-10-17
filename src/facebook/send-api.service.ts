@@ -49,7 +49,7 @@ export class SendApiService {
       return true;
     } catch (error) {
       this.logger.error(
-        `Method: ${this.sendAttachment.name}, cannot send attachment message, the response is ${error.response?.data || error.message}`,
+        `Method: ${this.sendAttachment.name}, cannot send attachment message, the response is ${JSON.stringify(error.response?.data || error.message)}`,
       );
       return false;
     }
@@ -68,7 +68,7 @@ export class SendApiService {
       return true;
     } catch (error) {
       this.logger.error(
-        `Method: ${this.sendTypingAction.name}, cannot send typing action, the response is ${error.response?.data || error.message}`,
+        `Method: ${this.sendTypingAction.name}, cannot send typing action, the response is ${JSON.stringify(error.response?.data || error.message)}`,
       );
       return false;
     }
