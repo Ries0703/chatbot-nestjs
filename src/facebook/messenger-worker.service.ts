@@ -84,7 +84,9 @@ export class MessengerWorkerService extends WorkerHost {
             },
           } as SendActionRequest))
         ) {
-          this.logger.error('an error occurred while sending typing action');
+          return this.logger.error(
+            'an error occurred while sending typing action',
+          );
         }
         if (
           await this.sendApiService.sendTypingAction({
@@ -99,7 +101,9 @@ export class MessengerWorkerService extends WorkerHost {
             },
           } as SendActionRequest)
         ) {
-          this.logger.error('an error occurred while sending typing action');
+          return this.logger.error(
+            'an error occurred while sending typing action',
+          );
         }
         const assistantId: string =
           await this.databaseService.findOpenAIIdByPageId(
