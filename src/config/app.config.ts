@@ -34,6 +34,7 @@ type Config = {
 
   dbConfig: {
     DATABASE_URL: string;
+    MAX_CONNECTION_POOL: number;
   };
 
   redisConfig: {
@@ -64,6 +65,10 @@ const prodConfig: Config = {
       process.env.DATABASE_URL,
       'DATABASE_URL',
     ) as string,
+    MAX_CONNECTION_POOL: validateEnvVar(
+      process.env.MAX_CONNECTION_POOL,
+      'MAX_CONNECTION_POOL',
+    ) as number,
   },
 
   redisConfig: {
@@ -110,6 +115,10 @@ const devConfig: Config = {
       process.env.DATABASE_URL,
       'DATABASE_URL',
     ) as string,
+    MAX_CONNECTION_POOL: validateEnvVar(
+      process.env.MAX_CONNECTION_POOL,
+      'MAX_CONNECTION_POOL',
+    ) as number,
   },
 
   redisConfig: {

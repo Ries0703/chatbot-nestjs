@@ -14,6 +14,7 @@ export class DatabaseService {
         ssl: {
           rejectUnauthorized: false,
         },
+        max: 3,
       });
       this.logger.log('database connected');
     } catch (error) {

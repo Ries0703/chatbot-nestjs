@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
-import { Thread } from 'openai/resources/beta';
 import {
   ImageURLContentBlock,
   Message,
@@ -53,21 +52,21 @@ export class EventHandler {
     }
   }
 
-  @OnEvent('thread.created') handleThreadCreatedEvent(thread: Thread) {
-    // this.logger.log(`thread_id = ${thread.id} created`);
-  }
+  // @OnEvent('thread.created') handleThreadCreatedEvent(thread: Thread) {
+  //   // this.logger.log(`thread_id = ${thread.id} created`);
+  // }
 
-  @OnEvent('thread.run.created') handleRunCreatedEvent(run: Run) {
-    // this.logger.log(`run_id = ${run.id} created`);
-  }
-
-  @OnEvent('thread.run.queued') handleRunQueuedEvent(run: Run) {
-    // this.logger.log(`run_id = ${run.id} queued`);
-  }
-
-  @OnEvent('thread.run.in_progress') handleRunInProgressEvent(run: Run) {
-    // this.logger.log(`run_id = ${run.id} is in progress`);
-  }
+  // @OnEvent('thread.run.created') handleRunCreatedEvent(run: Run) {
+  //   // this.logger.log(`run_id = ${run.id} created`);
+  // }
+  //
+  // @OnEvent('thread.run.queued') handleRunQueuedEvent(run: Run) {
+  //   // this.logger.log(`run_id = ${run.id} queued`);
+  // }
+  //
+  // @OnEvent('thread.run.in_progress') handleRunInProgressEvent(run: Run) {
+  //   // this.logger.log(`run_id = ${run.id} is in progress`);
+  // }
 
   @OnEvent('thread.run.requires_action') handleRunRequiresActionEvent(
     run: Run,
@@ -113,27 +112,27 @@ export class EventHandler {
     this.logger.error(`run_id = ${run.id} is expired`);
   }
 
-  @OnEvent('thread.run.step.created') handleRunStepCreatedEvent(
-    runStep: RunStep,
-  ) {
-    // this.logger.log(`run_step_id = ${runStep.id} created`);
-  }
-
-  @OnEvent('thread.run.step.in_progress') handleRunStepInProgressEvent(
-    runStep: RunStep,
-  ) {
-    // this.logger.log(`run_step_id = ${runStep.id} is in progress`);
-  }
-
-  @OnEvent('thread.run.step.delta') handleRunStepDeltaEvent(runStep: RunStep) {
-    // this.logger.log(`run_step_id = ${runStep.id} delta created`);
-  }
-
-  @OnEvent('thread.run.step.completed') handleRunStepCompletedEvent(
-    runStep: RunStep,
-  ) {
-    // this.logger.log(`run_step_id = ${runStep.id} completed`);
-  }
+  // @OnEvent('thread.run.step.created') handleRunStepCreatedEvent(
+  //   runStep: RunStep,
+  // ) {
+  //   // this.logger.log(`run_step_id = ${runStep.id} created`);
+  // }
+  //
+  // @OnEvent('thread.run.step.in_progress') handleRunStepInProgressEvent(
+  //   runStep: RunStep,
+  // ) {
+  //   // this.logger.log(`run_step_id = ${runStep.id} is in progress`);
+  // }
+  //
+  // @OnEvent('thread.run.step.delta') handleRunStepDeltaEvent(runStep: RunStep) {
+  //   // this.logger.log(`run_step_id = ${runStep.id} delta created`);
+  // }
+  //
+  // @OnEvent('thread.run.step.completed') handleRunStepCompletedEvent(
+  //   runStep: RunStep,
+  // ) {
+  //   // this.logger.log(`run_step_id = ${runStep.id} completed`);
+  // }
 
   @OnEvent('thread.run.step.failed') handleRunStepFailedEvent(
     runStep: RunStep,
@@ -153,30 +152,28 @@ export class EventHandler {
     this.logger.error(`run_step_id = ${runStep.id} expired`);
   }
 
-  @OnEvent('thread.message.created') handleMessageCreatedEvent(
-    message: Message,
-  ) {
-    // this.logger.log(`message_id = ${message.id} created`);
-  }
+  // @OnEvent('thread.message.created') handleMessageCreatedEvent(
+  //   message: Message,
+  // ) {
+  //   // this.logger.log(`message_id = ${message.id} created`);
+  // }
+  //
+  // @OnEvent('thread.message.in_progress') handleMessageInProgressEvent(
+  //   message: Message,
+  // ) {
+  //   // this.logger.log(`message_id = ${message.id} is in progress`);
+  // }
 
-  @OnEvent('thread.message.in_progress') handleMessageInProgressEvent(
-    message: Message,
-  ) {
-    // this.logger.log(`message_id = ${message.id} is in progress`);
-  }
-
-  @OnEvent('thread.message.delta') handleMessageDeltaEvent(message: Message) {
-    // this.logger.log(`message_id = ${message.id} delta created`);
-  }
+  // @OnEvent('thread.message.delta') handleMessageDeltaEvent(message: Message) {
+  //   // this.logger.log(`message_id = ${message.id} delta created`);
+  // }
 
   @OnEvent('thread.message.completed')
   async handleMessageCompletedEvent(
     message: Message,
     eventMetadata: EventMetadataTypes,
   ) {
-    this.logger.log(
-      `message_id = ${message.id} completed, sending it out...`,
-    );
+    this.logger.log(`message_id = ${message.id} completed, sending it out...`);
     this.logger.log(
       `assistant > ${(message.content[0] as TextContentBlock).text.value}`,
     );
