@@ -175,7 +175,7 @@ export class EventHandler {
     eventMetadata: EventMetadataTypes,
   ) {
     this.logger.log(
-      `message_id = ${message.id} completed, sending it out... ${eventMetadata}`,
+      `message_id = ${message.id} completed, sending it out...`,
     );
     this.logger.log(
       `assistant > ${(message.content[0] as TextContentBlock).text.value}`,
