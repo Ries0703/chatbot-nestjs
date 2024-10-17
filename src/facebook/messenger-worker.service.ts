@@ -71,8 +71,8 @@ export class MessengerWorkerService extends WorkerHost {
             `page_id ${messaging.recipient.id} is not associated with any page access token`,
           );
         }
-        if (
-          !(await this.sendApiService.sendTypingAction({
+        const typingActionsSent: boolean =
+          (await this.sendApiService.sendTypingAction({
             body: {
               recipient: {
                 id: messaging.sender.id,
@@ -82,14 +82,8 @@ export class MessengerWorkerService extends WorkerHost {
             params: {
               access_token: pageAccessToken,
             },
-          } as SendActionRequest))
-        ) {
-          return this.logger.error(
-            'an error occurred while sending typing action',
-          );
-        }
-        if (
-          await this.sendApiService.sendTypingAction({
+          } as SendActionRequest)) &&
+          (await this.sendApiService.sendTypingAction({
             body: {
               recipient: {
                 id: messaging.sender.id,
@@ -99,8 +93,8 @@ export class MessengerWorkerService extends WorkerHost {
             params: {
               access_token: pageAccessToken,
             },
-          } as SendActionRequest)
-        ) {
+          } as SendActionRequest));
+        if (!typingActionsSent) {
           return this.logger.error(
             'an error occurred while sending typing action',
           );
