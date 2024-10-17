@@ -25,18 +25,28 @@ export class DatabaseService {
   async findThreadIdByPsIdAndPageId(
     psId: string,
     pageId: string,
-  ): Promise<string> {
+  ): Promise<
+    {
+      threadId: string;
+      chatbotOpenAIId: string;
+    }[]
+  > {
     let client: PoolClient;
     try {
       client = await this.pool.connect();
       const results = await client.query(
-        'SELECT thread_id FROM facebook_page_user_thread WHERE page_scoped_id = $1 AND page_id = $2',
-        [psId, pageId],
+        'SELECT thread_id, chatbot_openai_id FROM facebook_page_user_thread WHERE page_id = $1 AND page_scoped_id = $2',
+        [pageId, psId],
       );
-      if (!results.rows.length) {
+      if (!results.rows?.length) {
         return null;
       }
-      return results.rows[0].thread_id;
+      return results.rows.map((result) => {
+        return {
+          threadId: result.thread_id,
+          chatbotOpenAIId: result.chatbot_openai_id,
+        };
+      });
     } catch (error) {
       this.logger.error('error getting thread_id', error);
     } finally {
@@ -44,17 +54,18 @@ export class DatabaseService {
     }
   }
 
-  async saveThreadId(
-    threadId: string,
-    psId: string,
-    pageId: string,
-  ): Promise<void> {
+  async saveThreadId(entity: {
+    pageId: string;
+    psId: string;
+    assistantId: string;
+    threadId: string;
+  }): Promise<void> {
     let client: PoolClient;
     try {
       client = await this.pool.connect();
       await client.query(
-        'INSERT INTO facebook_page_user_thread (page_id, page_scoped_id ,thread_id) VALUES ($1, $2, $3) ON CONFLICT (page_scoped_id, page_id) DO UPDATE SET thread_id = EXCLUDED.thread_id',
-        [pageId, psId, threadId],
+        'INSERT INTO facebook_page_user_thread (page_id, page_scoped_id , chatbot_openai_id, thread_id) VALUES ($1, $2, $3, $4) ON CONFLICT (page_scoped_id, page_id, chatbot_openai_id) DO UPDATE SET thread_id = EXCLUDED.thread_id',
+        [entity.pageId, entity.psId, entity.assistantId, entity.threadId],
       );
       this.logger.log('thread_id saved');
     } catch (error) {

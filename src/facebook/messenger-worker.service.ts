@@ -16,11 +16,12 @@ import {
 } from '../types/messenger.types';
 import OpenAI from 'openai';
 import { RedisService } from '@liaoliaots/nestjs-redis';
-import { ImageURLContentBlock } from 'openai/resources/beta/threads';
+import { ImageURLContentBlock, Threads } from 'openai/resources/beta/threads';
 import { AssistantStream } from 'openai/lib/AssistantStream';
 import { EventMetadataTypes } from '../types/event-metadata.types';
 import Redis from 'ioredis';
 import { TextContentBlockParam } from 'openai/src/resources/beta/threads/messages';
+import Thread = Threads.Thread;
 
 @Processor(Platform.MESSENGER, { concurrency: 100 })
 export class MessengerWorkerService extends WorkerHost {
@@ -125,6 +126,7 @@ export class MessengerWorkerService extends WorkerHost {
     const threadId = await this.getThread(
       messagingEvent.sender.id,
       messagingEvent.recipient.id,
+      assistantId,
     );
     if (!threadId) {
       return this.logger.error('error finding thread');
@@ -246,26 +248,48 @@ export class MessengerWorkerService extends WorkerHost {
     }
   }
 
-  private async getThread(psId: string, pageId: string): Promise<string> {
+  private async getThread(
+    psId: string,
+    pageId: string,
+    assistantId: string,
+  ): Promise<string> {
     try {
-      let threadId: string =
-        await this.databaseService.findThreadIdByPsIdAndPageId(psId, pageId);
-      if (!threadId) {
-        this.logger.log(
-          `create new thread for the (psId, pageId) pair: (${psId}, ${pageId})`,
-        );
-        threadId = (
-          await this.openAIClient.beta.threads.create({
-            metadata: { psId, pageId },
-          })
-        ).id;
-        await this.databaseService.saveThreadId(threadId, psId, pageId);
-        return threadId;
-      }
-      this.logger.log(
-        `use existing thread for the (psId, pageId) pair: (${psId}, ${pageId})`,
+      // all the threadIds in this list are the same
+      const results: {
+        threadId: string;
+        chatbotOpenAIId: string;
+      }[] = await this.databaseService.findThreadIdByPsIdAndPageId(
+        psId,
+        pageId,
       );
-      return threadId;
+      if (!results) {
+        const thread: Thread = await this.openAIClient.beta.threads.create();
+        await this.databaseService.saveThreadId({
+          pageId: pageId,
+          psId: psId,
+          assistantId: assistantId,
+          threadId: thread.id,
+        });
+        return thread.id;
+      }
+      let doesExist: boolean = false;
+      for (const result of results) {
+        if (result.chatbotOpenAIId === assistantId) {
+          doesExist = true;
+          break;
+        }
+      }
+
+      const oldThread = results[0].threadId;
+      if (!doesExist) {
+        await this.databaseService.saveThreadId({
+          pageId: pageId,
+          psId: psId,
+          assistantId: assistantId,
+          threadId: oldThread,
+        });
+      }
+      return oldThread;
     } catch (error) {
       this.logger.error('error fetching thread', error);
       return null;
