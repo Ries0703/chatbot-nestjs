@@ -164,9 +164,9 @@ export class EventHandler {
   //   // this.logger.log(`message_id = ${message.id} is in progress`);
   // }
 
-  // @OnEvent('thread.message.delta') handleMessageDeltaEvent(message: Message) {
-  //   // this.logger.log(`message_id = ${message.id} delta created`);
-  // }
+  @OnEvent('thread.message.delta') handleMessageDeltaEvent(message: Message) {
+    this.logger.log(`message_id = ${message.id} delta created`);
+  }
 
   @OnEvent('thread.message.completed')
   async handleMessageCompletedEvent(

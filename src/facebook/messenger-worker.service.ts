@@ -263,6 +263,7 @@ export class MessengerWorkerService extends WorkerHost {
         pageId,
       );
       if (!results) {
+        this.logger.log('creating new thread');
         const thread: Thread = await this.openAIClient.beta.threads.create();
         await this.databaseService.saveThreadId({
           pageId: pageId,
@@ -270,6 +271,7 @@ export class MessengerWorkerService extends WorkerHost {
           assistantId: assistantId,
           threadId: thread.id,
         });
+        this.logger.log('new thread created');
         return thread.id;
       }
       let doesExist: boolean = false;
@@ -282,6 +284,7 @@ export class MessengerWorkerService extends WorkerHost {
 
       const oldThread = results[0].threadId;
       if (!doesExist) {
+        this.logger.log('new assistant but old thread');
         await this.databaseService.saveThreadId({
           pageId: pageId,
           psId: psId,
