@@ -11,6 +11,9 @@ export class DatabaseService {
     try {
       this.pool = new Pool({
         connectionString: `${config.dbConfig.DATABASE_URL}?sslmode=require`,
+        ssl: {
+          rejectUnauthorized: true,
+        },
       });
       this.logger.log('database connected');
     } catch (error) {
