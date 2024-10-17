@@ -312,11 +312,12 @@ export class EventHandler {
       );
       this.logger.log('finish migrating thread');
       this.logger.log(JSON.stringify(results));
-      await this.databaseService.saveThreadId(
-        newThread.id,
-        eventMetaData.pageScopedId,
-        eventMetaData.pageId,
-      );
+      await this.databaseService.saveThreadId({
+        pageId: eventMetaData.pageId,
+        psId: eventMetaData.pageScopedId,
+        threadId: newThread.id,
+        assistantId: eventMetaData.assistantId,
+      });
       const stream = this.openAIClient.beta.threads.runs.stream(newThread.id, {
         assistant_id: eventMetaData.assistantId,
       });
