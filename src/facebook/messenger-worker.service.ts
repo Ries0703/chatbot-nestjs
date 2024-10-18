@@ -10,17 +10,13 @@ import {
 } from '../types/webhook-event.types';
 import { DatabaseService } from './database.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import {
-  SendActionRequest,
-  SendTextMessageRequest,
-} from '../types/messenger.types';
+import { SendActionRequest } from '../types/messenger.types';
 import OpenAI from 'openai';
 import { RedisService } from '@liaoliaots/nestjs-redis';
-import { ImageURLContentBlock, Threads } from 'openai/resources/beta/threads';
+import { Threads } from 'openai/resources/beta/threads';
 import { AssistantStream } from 'openai/lib/AssistantStream';
 import { EventMetadataTypes } from '../types/event-metadata.types';
 import Redis from 'ioredis';
-import { TextContentBlockParam } from 'openai/src/resources/beta/threads/messages';
 import Thread = Threads.Thread;
 
 @Processor(Platform.MESSENGER, { concurrency: 100 })
@@ -129,115 +125,36 @@ export class MessengerWorkerService extends WorkerHost {
       assistantId,
     );
     if (!threadId) {
-      return this.logger.error('error finding thread');
+      this.logger.error('Error finding thread');
+      return;
     }
-    const latestRun = (
-      await this.openAIClient.beta.threads.runs.list(threadId, {
-        limit: 1,
-      })
-    ).data;
-    if (messagingEvent.message.text) {
-      this.logger.log('received a text message, processing...');
-      if (
-        !latestRun &&
-        !latestRun.length &&
-        !this.isTerminalStatus[latestRun[0].status]
-      ) {
-        this.logger.log('pushing the text message to redis');
-        const messageKey = `message-list:${threadId}-${messagingEvent.sender.id}`;
-        const textValue: string = JSON.stringify({
-          type: 'text',
-          text: messagingEvent.message.text,
-        } as TextContentBlockParam);
-        await this.redisClient.rpush(messageKey, textValue);
-        return;
-      }
-      await this.openAIClient.beta.threads.messages.create(threadId, {
-        role: 'user',
-        content: messagingEvent.message.text,
-      });
-    } else if (
-      messagingEvent.message.attachments &&
-      messagingEvent.message.attachments.length
-    ) {
-      this.logger.log('received an attachment message, processing...');
-      if (
-        !latestRun ||
-        !latestRun.length ||
-        !this.isTerminalStatus[latestRun[0].status]
-      ) {
-        for (const attachment of messagingEvent.message.attachments) {
-          if (attachment.type === 'image') {
-            this.logger.log('pushing the image_url message to redis');
-            const messageKey = `message-list:${threadId}-${messagingEvent.sender.id}`;
-            const imageUrlValue: string = JSON.stringify({
-              type: 'image_url',
-              image_url: {
-                url: attachment.payload.url,
-              },
-            } as ImageURLContentBlock);
-            await this.redisClient.rpush(messageKey, imageUrlValue);
-          } else {
-            this.logger.error(
-              'not text or image message, sending automatic reply',
-            );
-            await this.sendApiService.sendTextMessage({
-              body: {
-                recipient: {
-                  id: messagingEvent.sender.id,
-                },
-                message: {
-                  text: 'chúng tôi không nhận file do sợ virus',
-                },
-              },
-              params: { access_token: pageAccessToken },
-            } as SendTextMessageRequest);
-          }
-        }
-        return;
-      } else {
-        for (const attachment of messagingEvent.message.attachments) {
-          if (attachment.type === 'image') {
-            await this.openAIClient.beta.threads.messages.create(threadId, {
-              role: 'user',
-              content: [
-                {
-                  type: 'image_url',
-                  image_url: {
-                    url: attachment.payload.url,
-                  },
-                },
-              ] as Array<ImageURLContentBlock>,
-            });
-          } else {
-            this.logger.error(
-              'not text or image message, sending automatic reply',
-            );
-            await this.sendApiService.sendTextMessage({
-              body: {
-                recipient: {
-                  id: messagingEvent.sender.id,
-                },
-                message: {
-                  text: 'chúng tôi không nhận file do sợ virus',
-                },
-              },
-              params: { access_token: pageAccessToken },
-            } as SendTextMessageRequest);
-          }
-        }
-      }
+    const latestRunData = await this.openAIClient.beta.threads.runs.list(
+      threadId,
+      { limit: 1 },
+    );
+    const latestRun = latestRunData.data[0];
+
+    if (messagingEvent.message?.text) {
+      await this.handleTextMessage(messagingEvent, latestRun, threadId);
+    } else if (messagingEvent.message?.attachments?.length) {
+      await this.handleAttachments(
+        messagingEvent,
+        latestRun,
+        threadId,
+        pageAccessToken,
+      );
     }
 
     const eventMetadata: EventMetadataTypes = {
       pageScopedId: messagingEvent.sender.id,
       pageId: messagingEvent.recipient.id,
       accessToken: pageAccessToken,
-      threadId: threadId,
-      assistantId: assistantId,
+      threadId,
+      assistantId,
     };
-    this.logger.log('creating stream...');
-    this.logger.log(JSON.stringify(eventMetadata));
+
+    this.logger.log('Creating stream...');
+
     const stream: AssistantStream = this.openAIClient.beta.threads.runs.stream(
       threadId,
       { assistant_id: assistantId },
@@ -248,6 +165,74 @@ export class MessengerWorkerService extends WorkerHost {
     }
   }
 
+  private async handleTextMessage(
+    messagingEvent: MessagingEvent,
+    latestRun: any,
+    threadId: string,
+  ): Promise<void> {
+    this.logger.log('Received a text message, processing...');
+
+    const isRunActive = latestRun && this.isTerminalStatus[latestRun.status];
+
+    if (!isRunActive) {
+      this.logger.log('Pushing the text message to Redis');
+      const messageKey = `message-list:${threadId}-${messagingEvent.sender.id}`;
+      const textValue = JSON.stringify({
+        type: 'text',
+        text: messagingEvent.message.text,
+      });
+      await this.redisClient.rpush(messageKey, textValue);
+    } else {
+      await this.openAIClient.beta.threads.messages.create(threadId, {
+        role: 'user',
+        content: messagingEvent.message.text,
+      });
+    }
+  }
+
+  private async handleAttachments(
+    messagingEvent: MessagingEvent,
+    latestRun: any,
+    threadId: string,
+    pageAccessToken: string,
+  ): Promise<void> {
+    this.logger.log('Received an attachment message, processing...');
+
+    const isRunActive = latestRun && this.isTerminalStatus[latestRun.status];
+
+    for (const attachment of messagingEvent.message.attachments) {
+      if (attachment.type === 'image') {
+        const imageUrlValue = JSON.stringify({
+          type: 'image_url',
+          image_url: { url: attachment.payload.url },
+        });
+
+        if (!isRunActive) {
+          this.logger.log('Pushing the image_url message to Redis');
+          const messageKey = `message-list:${threadId}-${messagingEvent.sender.id}`;
+          await this.redisClient.rpush(messageKey, imageUrlValue);
+        } else {
+          await this.openAIClient.beta.threads.messages.create(threadId, {
+            role: 'user',
+            content: [
+              { type: 'image_url', image_url: { url: attachment.payload.url } },
+            ],
+          });
+        }
+      } else {
+        this.logger.error('Not text or image message, sending automatic reply');
+        await this.sendApiService.sendTextMessage({
+          body: {
+            recipient: { id: messagingEvent.sender.id },
+            messaging_type: 'RESPONSE',
+            message: { text: 'Chúng tôi không nhận file do sợ virus' },
+          },
+          params: { access_token: pageAccessToken },
+        });
+      }
+    }
+  }
+
   private async getThread(
     psId: string,
     pageId: string,
@@ -255,46 +240,44 @@ export class MessengerWorkerService extends WorkerHost {
   ): Promise<string> {
     try {
       // all the threadIds in this list are the same
-      const results: {
+      const results: Array<{
         threadId: string;
         chatbotOpenAIId: string;
-      }[] = await this.databaseService.findThreadIdByPsIdAndPageId(
-        psId,
-        pageId,
-      );
-      if (!results) {
-        this.logger.log('creating new thread');
+      }> = await this.databaseService.findThreadIdByPsIdAndPageId(psId, pageId);
+
+      if (!results?.length) {
+        this.logger.log('Creating new thread');
         const thread: Thread = await this.openAIClient.beta.threads.create();
+
         await this.databaseService.saveThreadId({
-          pageId: pageId,
-          psId: psId,
-          assistantId: assistantId,
+          pageId,
+          psId,
+          assistantId,
           threadId: thread.id,
         });
-        this.logger.log('new thread created');
+
+        this.logger.log('New thread created');
         return thread.id;
       }
-      let doesExist: boolean = false;
-      for (const result of results) {
-        if (result.chatbotOpenAIId === assistantId) {
-          doesExist = true;
-          break;
-        }
-      }
 
-      const oldThread = results[0].threadId;
-      if (!doesExist) {
-        this.logger.log('new assistant but old thread');
+      const assistantExists = results.some(
+        (result) => result.chatbotOpenAIId === assistantId,
+      );
+      const { threadId: oldThread } = results[0];
+
+      if (!assistantExists) {
+        this.logger.log('New assistant but old thread');
         await this.databaseService.saveThreadId({
-          pageId: pageId,
-          psId: psId,
-          assistantId: assistantId,
+          pageId,
+          psId,
+          assistantId,
           threadId: oldThread,
         });
       }
+
       return oldThread;
     } catch (error) {
-      this.logger.error('error fetching thread', error);
+      this.logger.error('Error fetching thread', error);
       return null;
     }
   }

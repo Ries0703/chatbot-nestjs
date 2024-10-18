@@ -9,6 +9,8 @@ import { config } from '../config/app.config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { RedisModule } from '@liaoliaots/nestjs-redis';
 import { EventHandler } from './event-handler';
+import { SendAttachmentFunction } from './function-handlers/send-attachment.function';
+import { FunctionRegistry } from './function-registry';
 
 @Module({
   imports: [
@@ -33,6 +35,8 @@ import { EventHandler } from './event-handler';
       provide: OpenAI,
       useValue: new OpenAI({ apiKey: config.openAIConfig.OPENAI_API_KEY }),
     },
+    SendAttachmentFunction,
+    FunctionRegistry,
   ],
 })
 export class FacebookModule {}

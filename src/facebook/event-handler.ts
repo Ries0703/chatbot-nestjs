@@ -6,6 +6,7 @@ import {
   MessageCreateParams,
   Run,
   TextContentBlock,
+  Threads,
 } from 'openai/resources/beta/threads';
 import { RunStep } from 'openai/resources/beta/threads/runs';
 import { OpenAIError } from 'openai/error';
@@ -21,6 +22,8 @@ import {
   TextContentBlockParam,
 } from 'openai/src/resources/beta/threads/messages';
 import { AssistantStream } from 'openai/lib/AssistantStream';
+import { FunctionRegistry } from './function-registry';
+import RunSubmitToolOutputsParams = Threads.RunSubmitToolOutputsParams;
 
 @Injectable()
 export class EventHandler {
@@ -44,6 +47,7 @@ export class EventHandler {
     private readonly openAIClient: OpenAI,
     private readonly redisService: RedisService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly functionRegistry: FunctionRegistry,
   ) {
     try {
       this.redisClient = redisService.getOrThrow();
@@ -68,14 +72,39 @@ export class EventHandler {
   //   // this.logger.log(`run_id = ${run.id} is in progress`);
   // }
 
-  @OnEvent('thread.run.requires_action') handleRunRequiresActionEvent(
+  @OnEvent('thread.run.requires_action')
+  async handleRunRequiresActionEvent(
     run: Run,
     eventMetadata: EventMetadataTypes,
   ) {
     this.logger.log(
       `run_id = ${run.id} of thread ${eventMetadata.threadId} needs to call functions, calling with facebookParams = ${JSON.stringify(eventMetadata)}`,
     );
+    const toolOutputs = await Promise.all(
+      run.required_action.submit_tool_outputs.tool_calls.map(
+        async (toolCall) => {
+          const args = JSON.parse(toolCall.function.arguments);
+          const functionName = toolCall.function.name;
+          const toolId = toolCall.id;
+          const outputs = `${await this.functionRegistry.triggerFunctionByName(functionName, args, eventMetadata)}`;
+          return {
+            tool_call_id: toolId,
+            output: outputs,
+          } as RunSubmitToolOutputsParams.ToolOutput;
+        },
+      ),
+    );
     this.logger.log('calling done, streaming...');
+    const stream = this.openAIClient.beta.threads.runs.submitToolOutputsStream(
+      eventMetadata.threadId,
+      run.id,
+      {
+        tool_outputs: toolOutputs,
+      },
+    );
+    for await (const chunk of stream) {
+      this.eventEmitter.emit(chunk.event, chunk.data, eventMetadata);
+    }
   }
 
   // TODO: track usage from run
@@ -164,9 +193,9 @@ export class EventHandler {
   //   // this.logger.log(`message_id = ${message.id} is in progress`);
   // }
 
-  @OnEvent('thread.message.delta') handleMessageDeltaEvent(message: Message) {
-    this.logger.log(`message_id = ${message.id} delta created`);
-  }
+  // @OnEvent('thread.message.delta') handleMessageDeltaEvent(message: Message) {
+  //   this.logger.log(`message_id = ${message.id} delta created`);
+  // }
 
   @OnEvent('thread.message.completed')
   async handleMessageCompletedEvent(
